@@ -5,11 +5,11 @@ from sqlalchemy import null
 from numpy import transpose as t
 
 """
-The analysis class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
+The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
 """
 
 
-class analysis:
+class ion:
     def __init__(self, data, Q = .5, delta = .01):
 
         """
