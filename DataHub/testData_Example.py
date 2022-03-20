@@ -2,11 +2,11 @@
 # Pulling private data from gitignore file
 from posixpath import split
 import sys 
-sys.path.insert(0,"/Users/darstking/Desktop/Data/CMF/Finance/Trading/Desk1/privateKeys")
-from privateData import credentials
+from privateKeys.privateData import credentials
 import pandas as pd
 import requests
 import mysql.connector as sqlconnection
+
 
 credents = credentials()
 ## How to get stock data
@@ -18,6 +18,9 @@ base_url = sandboxBaseUrl + version + myParams + token
 
 data = requests.get(base_url).json()
 df = pd.DataFrame.from_dict(data)[['date','close']]
+df.iloc[0,0] = 'PENIS'
+
+
 
 ## How to connect to google cloud mysql database
 
@@ -39,20 +42,21 @@ cnxn = sqlconnection.connect(**credents.testCredentials)
 cursor = cnxn.cursor()
 
 #create a table
-query2 = "CREATE TABLE testData2 (\
-                        date VARCHAR(255), \
+query2 = "CREATE TABLE testData9 (\
+                        dateVal TEXT, \
                         close FLOAT(10))"
 
 #cursor.execute(query2)
 #cnxn.commit()
 
 ## Add data to a table 
-query3 = ("INSERT INTO testData2 (date, close) VALUES (%s, %s)")
+query3 = ("INSERT INTO testData9 (dateVal, close) VALUES (%s, %s)")
 for i in range(len(df.index)):
-    cursor.execute(query3 % tuple(df.iloc[i,].values))
+    print(tuple(df.iloc[i,].values))
+    cursor.execute(query3, tuple(df.iloc[i,].values))
 cnxn.commit()
 
-cursor.execute("SELECT * FROM testData2")
+cursor.execute("SELECT * FROM testData9")
 out = cursor.fetchall()
 db = pd.DataFrame(out)
 
@@ -60,7 +64,7 @@ db = pd.DataFrame(out)
 field_names = [i[0] for i in cursor.description]
 db.columns = field_names
 
-print(db)
+print(db['dateVal'].values)
 
 
 
