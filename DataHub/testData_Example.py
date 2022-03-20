@@ -8,11 +8,11 @@ import pandas as pd
 import requests
 import mysql.connector as sqlconnection
 
-
+credents = credentials()
 ## How to get stock data
 sandboxBaseUrl = "https://sandbox.iexapis.com/"
 version = "stable/"
-token = "?token=Tsk_6d5de56d03554905bbb70dfc3ed4aa55&chartCloseOnly=true"
+token = "?token=%s&chartCloseOnly=true" % credents.iexToken
 myParams = "stock/TQQQ/chart/6m"
 base_url = sandboxBaseUrl + version + myParams + token
 
@@ -21,15 +21,17 @@ df = pd.DataFrame.from_dict(data)[['date','close']]
 
 ## How to connect to google cloud mysql database
 
-credents = credentials()
 
 
+"""
+To Create a database, remove the database name in configs. Then connect without that table, and then add the new table into the connection configs.
+"""
 
 ##creating new database
-cursor = cnx.cursor()
-query1 = "CREATE DATABASE testdb"
-cursor.execute(query1)
-cnx.close()
+#cursor = cnx.cursor()
+#query1 = "CREATE DATABASE testdb"
+#cursor.execute(query1)
+#cnx.close()
 
 
 ## create a connection
@@ -41,14 +43,14 @@ query2 = "CREATE TABLE testData2 (\
                         date VARCHAR(255), \
                         close FLOAT(10))"
 
-cursor.execute(query2)
-cnxn.commit()
+#cursor.execute(query2)
+#cnxn.commit()
 
 ## Add data to a table 
 query3 = ("INSERT INTO testData2 (date, close) VALUES (%s, %s)")
 for i in range(len(df.index)):
     cursor.execute(query3 % tuple(df.iloc[i,].values))
-#cnxn.commit()
+cnxn.commit()
 
 cursor.execute("SELECT * FROM testData2")
 out = cursor.fetchall()
