@@ -7,13 +7,22 @@ class dataLink:
     def __init__(self):
 
         '''
-        dataLink: Cohesive object for moving data to and from SQL
+        dataLink: Cohesive object for moving data to and from mySQL
+
+        Going to pull in credentials from a private key file, and is going to connect to the mysql database running there.
         '''
         credents = credentials()
         self.cnxn = sqlconnection.connect(**credents.credentials)
         self.cursor = self.cnxn.cursor()
     
     def createTable(self, tableName, dataFrame):
+
+        '''
+        The create table method, takes in a pandas dataframe and table name and creates a new table.
+
+            tableName: String name for the table. If this table already exists, we will get an error
+            dataFrame: Pandas dataFrame which will be turned into a sql table.
+        '''
         columnString = ""
         valuesString = ""
         dataFrame = dataFrame.replace(np.nan,0,regex=True)
