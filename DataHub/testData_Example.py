@@ -1,13 +1,16 @@
 # How to get stock data from IEX to Google
 # Pulling private data from gitignore file
+from pickle import FALSE
 from posixpath import split
 import sys 
 from privateKeys.privateData import credentials
 import pandas as pd
 import requests
 import mysql.connector as sqlconnection
+from dataLink import dataLink
+import numpy as np
 
-
+"""
 credents = credentials()
 ## How to get stock data
 sandboxBaseUrl = "https://sandbox.iexapis.com/"
@@ -27,7 +30,7 @@ df.iloc[0,0] = 'PENIS'
 
 
 """
-To Create a database, remove the database name in configs. Then connect without that table, and then add the new table into the connection configs.
+#To Create a database, remove the database name in configs. Then connect without that table, and then add the new table into the connection configs.
 """
 
 ##creating new database
@@ -66,9 +69,14 @@ db.columns = field_names
 
 print(db['dateVal'].values)
 
+"""
+
+testData = pd.read_csv("/Users/darstking/Desktop/Data/CMF/Finance/Trading/Desk1/DataHub/stockDataToUpload.csv", index_col = 0)
+testData = testData.replace(np.nan,0,regex=True)
 
 
-
+connection = dataLink()
+connection.createTable("testStockTable6",testData)
 
 
 
