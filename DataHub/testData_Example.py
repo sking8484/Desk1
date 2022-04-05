@@ -23,7 +23,9 @@ print(db['dateVal'].values)
 
 """
 
-testData = pd.read_csv("/Users/darstking/Desktop/Data/CMF/Finance/Trading/Desk1/DataHub/stockDataToUpload.csv", index_col = 0)
+credents = credentials()
+
+testData = pd.read_csv(credents.stockDataPath, index_col = 0)
 testData = testData.replace(np.nan,0,regex=True)
 
 
