@@ -27,13 +27,13 @@ credents = credentials()
 
 testData = pd.read_csv(credents.stockDataPath, index_col = 0)
 
-joinDataTest = testData[['date','AAPL']]
-joinDataTest.columns = ['date','AAPL_TEST']
+joinDataTest = testData[['date','MSFT']]
+joinDataTest.columns = ['date','MSFT_TEST']
 
 
 connection = dataLink()
-connection.addColumns("date", "testStockTable6", joinDataTest)
-#connection.dropColumns("testStockTable6", ["AAPL"])
+connection.joinTables("date", "testStockTable7", joinDataTest)
+
 
 
 
