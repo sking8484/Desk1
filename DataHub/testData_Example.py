@@ -26,12 +26,14 @@ print(db['dateVal'].values)
 credents = credentials()
 
 testData = pd.read_csv(credents.stockDataPath, index_col = 0)
-testData = testData.replace(np.nan,0,regex=True)
+
+joinDataTest = testData[['date','AAPL']]
+joinDataTest.columns = ['date','AAPL_TEST']
 
 
 connection = dataLink()
-connection.createTable("testStockTable6",testData)
-
+connection.addColumns("date", "testStockTable6", joinDataTest)
+#connection.dropColumns("testStockTable6", ["AAPL"])
 
 
 

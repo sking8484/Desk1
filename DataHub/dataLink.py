@@ -15,7 +15,7 @@ class dataLink:
         self.cnxn = sqlconnection.connect(**credents.credentials)
         self.cursor = self.cnxn.cursor()
     
-    def createTable(self, tableName, dataFrame):
+    def createTable(self, tableName, dataFrame = "", addAutoIncrementCol = True, addData = True):
 
         '''
         The create table method, takes in a pandas dataframe and table name and creates a new table.
@@ -35,24 +35,51 @@ class dataLink:
                 columnString += col + " TEXT"
                 valuesString += "%s"
         columnString = columnString.replace(".","_")
-        query = "CREATE TABLE " + tableName + " (ID int NOT NULL AUTO_INCREMENT, " + columnString + ", PRIMARY KEY (ID))"
+
+        if addAutoIncrementCol:
+            query = "CREATE TABLE " + tableName + " (ID int NOT NULL AUTO_INCREMENT, " + columnString + ", PRIMARY KEY (ID))"
+        else:
+            query = "CREATE TABLE " + tableName + "(" + columnString + ")"
+
         self.cursor.execute(query)
-        
-        colsNoDefinitions = columnString.replace(" TEXT","")
-        query = "INSERT INTO " + tableName + " (" + colsNoDefinitions + ") VALUES (" + valuesString + ")"
-        
-        print(dataFrame.iloc[0,].values)
-        for i in range(len(dataFrame.index)):
-            if i%100 == 0:
-                print(i/len(dataFrame.index))
-            self.cursor.execute(query,tuple(dataFrame.iloc[i,].values))
+
+        if addData:
+            colsNoDefinitions = columnString.replace(" TEXT","")
+            query = "INSERT INTO " + tableName + " (" + colsNoDefinitions + ") VALUES (" + valuesString + ")"
+            
+            for i in range(len(dataFrame.index)):
+                if i%100 == 0:
+                    print(i/len(dataFrame.index))
+                self.cursor.execute(query,tuple(dataFrame.iloc[i,].values))
         
         self.commit()
 
 
+    def joinTables(self, joinColumn, originalTableName, joinTableDataFrame):
+        "Need to figure out how to join tables without using select ... into, thinking of using create table like and having the like table be result of query"
+        self.createTable('interimTable', joinTableDataFrame, False)
+        query = "SELECT * INTO " + originalTableName + "_ FROM " + originalTableName + "LEFT JOIN interimTable ON " + originalTableName + "." + joinColumn + " = interimTable." + joinColumn 
+        print(query)
+        self.cursor.execute(query)
+        self.commit()
 
-    def updateTable(self, tableName, dataFrame):
-        pass 
+    def dropColumns(self, tableName, columnList):
+        query = "ALTER TABLE " + tableName + " DROP COLUMN "
+        for col in columnList:
+            if col != columnList[-1]:
+                query += col + ", "
+            else:
+                query += col + ";"
+        
+        self.cursor.execute(query)
+        self.commit()
+
+
+    def deleteTable(self, tableName):
+        query = "DROP TABLE " + tableName
+        self.cursor.execute(query)
+        self.commit()
+
 
     def commit(self):
         self.cnxn.commit()
