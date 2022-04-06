@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sqlalchemy import null 
 from numpy import transpose as t
 
 """
@@ -40,7 +39,7 @@ class ion:
         self.Q = Q
         self.delta = delta
     
-    def getGerberMatrix(self, Q = null):
+    def getGerberMatrix(self, Q = None):
         """
         A method to return the Gerber (modified COV) matrix using data
         ...
@@ -51,7 +50,7 @@ class ion:
             Indicating how many standard deviations 
                 We want to start counting comovements
         """
-        if Q == null:
+        if Q == None:
             Q = self.Q
 
         
@@ -104,7 +103,7 @@ class ion:
 
         return G 
 
-    def getOptimalWeights(self, delta = null, gerber = True):
+    def getOptimalWeights(self, delta = None, gerber = True):
         """
         A method to get the optimal weights.
             Equation we are optimizing is r^T(h), w.r.t h^t(S)h = d^2
@@ -114,7 +113,7 @@ class ion:
                 d = variance of portfolio
         !!! Important, will be migrating to Orion shortly !!!
         """
-        if delta == null:
+        if delta == None:
             delta = self.delta
 
         returns = t(np.asmatrix(self.data.iloc[:, 1:].sum()))
