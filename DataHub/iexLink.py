@@ -19,23 +19,17 @@ class iexLink:
 
     def getStockData(self, tickers: list, startDate: str, sinceSpecificDate = True) -> pd.DataFrame:
 
-        
         firstJoin = True
         BaseUrl = "https://cloud.iexapis.com/"
         version = "stable/"
         token = "&token=" + self.token
         
-        
         for stock in tickers:
             
             myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d") 
             base_url = BaseUrl + version + myParams + token
-            print(base_url)
             data = requests.get(base_url)
-            print(data)
             stockData = pd.DataFrame.from_dict(data.json(), orient="columns")[['date','close']]
-            
-                
             stockData.columns = ['date', stock]
 
             if firstJoin == True:
