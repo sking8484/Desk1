@@ -9,6 +9,7 @@ import requests
 import mysql.connector as sqlconnection
 from dataLink import dataLink
 import numpy as np
+from iexLink import iexLink
 
 """
 cursor.execute("SELECT * FROM testData9")
@@ -29,11 +30,14 @@ credents = credentials()
 
 
 
-
+'''
 connection = dataLink(credents.credentials)
 data = connection.returnTable("testStockTable")
 print(data)
+'''
 
+link = iexLink(credents.iexToken)
+link.getStockData(['AAPL', 'TSLA'],"3-31-2022")
 
 
 
