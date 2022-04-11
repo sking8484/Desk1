@@ -45,9 +45,8 @@ class iexLink:
                 historicalData = historicalData.merge(stockData, on = 'date', how = 'left')
         historicalData['date'] = pd.to_datetime(historicalData['date'], unit = 'ms')
         historicalData = historicalData.sort_values(by = "date")
-        print(historicalData)
-    def getBusinessDays(self, startDate):
-        return pd.bdate_range(startDate, date.today())
+        
+    
  
 
 
