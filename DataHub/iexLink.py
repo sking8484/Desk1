@@ -19,39 +19,33 @@ class iexLink:
 
     def getStockData(self, tickers: list, startDate: str, sinceSpecificDate = True) -> pd.DataFrame:
 
-        if sinceSpecificDate:
-            firstJoin = True
-            BaseUrl = "https://cloud.iexapis.com/"
-            version = "stable/"
-            token = "?token=" + self.token
-            busDays = self.getBusinessDays(startDate)
-            print(busDays)
-            for stock in tickers:
-                firstDate = True
-                for day in busDays:
-                    dayStr = day.strftime("%Y%m%d")
-                    myParams = "stock/" + stock + "/chart/date/" + dayStr
-                    base_url = BaseUrl + version + myParams + token + "&chartCloseOnly=true&chartByDay=true"
-                    data = requests.get(base_url)
-                    
-                    stockData = pd.DataFrame.from_dict(data.json(), orient="columns")[['date','close']]
-                    
-                    stockData.columns = ['date', stock]
+        
+        firstJoin = True
+        BaseUrl = "https://cloud.iexapis.com/"
+        version = "stable/"
+        token = "&token=" + self.token
+        
+        
+        for stock in tickers:
+            
+            myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d") 
+            base_url = BaseUrl + version + myParams + token
+            print(base_url)
+            data = requests.get(base_url)
+            print(data)
+            stockData = pd.DataFrame.from_dict(data.json(), orient="columns")[['date','close']]
+            
+                
+            stockData.columns = ['date', stock]
 
-                    if firstDate == True:
-                        singleStock = stockData 
-                        firstDate = False
-                    else:
-                        singleStock = pd.concat([singleStock,stockData], axis = 0)
-                    
-                    
-                if firstJoin == True:
-                    historicalData = singleStock
-                    firstJoin = False
-                else:
-                    historicalData = historicalData.merge(singleStock, on = 'date', how = 'left')
-            
-            
+            if firstJoin == True:
+                historicalData = stockData
+                firstJoin = False
+            else:
+                historicalData = historicalData.merge(stockData, on = 'date', how = 'left')
+        historicalData['date'] = pd.to_datetime(historicalData['date'], unit = 'ms')
+        historicalData = historicalData.sort_values(by = "date")
+        print(historicalData)
     def getBusinessDays(self, startDate):
         return pd.bdate_range(startDate, date.today())
  

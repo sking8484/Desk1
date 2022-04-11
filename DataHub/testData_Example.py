@@ -37,7 +37,7 @@ print(data)
 '''
 
 link = iexLink(credents.iexToken)
-link.getStockData(['AAPL', 'TSLA'],"3-31-2022")
+link.getStockData(['AAPL', 'TSLA'],"20220331")
 
 
 
