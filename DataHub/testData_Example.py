@@ -25,14 +25,14 @@ print(db['dateVal'].values)
 
 credents = credentials()
 
-testData = pd.read_csv(credents.stockDataPath, index_col = 0)
-
-joinDataTest = testData[['date','MSFT']]
-joinDataTest.columns = ['date','MSFT_TEST']
+#testData = pd.read_csv(credents.stockDataPath, index_col = 0)
 
 
-connection = dataLink()
-connection.joinTables("date", "testStockTable7", joinDataTest)
+
+
+connection = dataLink(credents.credentials)
+data = connection.returnTable("testStockTable")
+print(data)
 
 
 

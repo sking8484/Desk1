@@ -1,21 +1,21 @@
 import pandas as pd
 import mysql.connector as sqlconnection
-from privateKeys.privateData import credentials
+
 import numpy as np
 
 class dataLink:
-    def __init__(self):
+    def __init__(self, credentials: dict):
 
         """
         A class used to create a datalink between Python (Pandas specifically) and SQL.
         ...
         """
 
-        credents = credentials()
-        self.cnxn = sqlconnection.connect(**credents.credentials)
+        
+        self.cnxn = sqlconnection.connect(**credentials)
         self.cursor = self.cnxn.cursor()
-    
-    def createTable(self, tableName, dataFrame, addAutoIncrementCol = True):
+        print("Link Established")
+    def createTable(self, tableName: str, dataFrame: pd.DataFrame, addAutoIncrementCol = True) -> None:
 
         """
         A method to create a table, using mysql connector and executemany.
@@ -48,15 +48,39 @@ class dataLink:
             query = "CREATE TABLE " + tableName + "(" + columnString + ")"
 
         self.cursor.execute(query)
-
         
-        colsNoDefinitions = columnString.replace(" TEXT","")
-        query = "INSERT INTO " + tableName + " (" + colsNoDefinitions + ") VALUES (" + valuesString + ")"
-        
-        self.cursor.executemany(query,dataFrame.values.tolist())
-        
+        self.append(tableName,dataFrame)
         self.commit()
 
+    def returnTable(self, tableName: str) -> pd.DataFrame:
+        
+        query = "SELECT * FROM " + tableName
+        self.cursor.execute(query)
+        out = self.cursor.fetchall()
+        db = pd.DataFrame(out)
+        field_names = [i[0] for i in self.cursor.description]
+        db.columns = field_names
+        return db
+
+    def append(self, tableName: str, dataFrame: pd.DataFrame) -> None:
+        columnString = ""
+        valuesString = ""
+        dataFrame = dataFrame.replace(np.nan,0,regex=True)
+
+        for col in dataFrame.columns:
+        
+            if (col != dataFrame.columns[-1]):
+                columnString += col + ", "
+                valuesString += "%s, "
+            else:
+                columnString += col 
+                valuesString += "%s"
+        columnString = columnString.replace(".","_")
+
+        query = "INSERT INTO " + tableName + " (" + columnString + ") VALUES (" + valuesString + ")"
+        
+        self.cursor.executemany(query,dataFrame.values.tolist())
+        self.commit()
 
     def joinTables(self, joinColumn, originalTableName, joinTableDataFrame):
 
