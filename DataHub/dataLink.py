@@ -147,7 +147,9 @@ class dataLink:
         tableName: The table to drop columns in
         columnList: A list of columns. If only one item, include in list still, e.g. ["AAPL"]
         """
-
+        if len(columnList) == 0:
+            return
+            
         query = "ALTER TABLE " + tableName + " DROP COLUMN "
         for col in columnList:
             if col != columnList[-1]:
@@ -186,3 +188,18 @@ class dataLink:
         """
 
         self.cnxn.commit()
+
+    def getColumns(self, table:str) -> list:
+        return self.getLastRow(table).columns
+        
+
+    def getLastRow(self, table:str) -> pd.DataFrame:
+
+        query = "SELECT * FROM " + table + " WHERE ID = (SELECT MAX(ID) FROM " + table + ")"
+        self.cursor.execute(query)
+        out = self.cursor.fetchall()
+        temp_df = pd.DataFrame(out) 
+        field_names = [i[0] for i in self.cursor.description]
+        temp_df.columns = field_names
+        return temp_df
+

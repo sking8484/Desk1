@@ -3,6 +3,7 @@ from dataLink import dataLink
 import pandas as pd 
 from datetime import date
 import requests
+from datetime import datetime
 
 """
 Grab last item in stock table in order to get the date
@@ -12,10 +13,10 @@ then upload this to sql
 """
 
 class iexLink:
-    def __init__(self, token:str):
+    def __init__(self):
         credents = credentials()
-        self.token = token
-        self.dataLink = dataLink(credents.credentials)
+        self.token = credents.iexToken
+        #self.dataLink = dataLink(credents.credentials)
 
     def getStockData(self, tickers: list, startDate: str, sinceSpecificDate = True) -> pd.DataFrame:
 
@@ -37,8 +38,12 @@ class iexLink:
                 firstJoin = False
             else:
                 historicalData = historicalData.merge(stockData, on = 'date', how = 'left')
+        
         historicalData['date'] = pd.to_datetime(historicalData['date'], unit = 'ms')
         historicalData = historicalData.sort_values(by = "date")
+        historicalData['date'] = historicalData['date'].dt.strftime("%Y-%m-%d")
+
+        return historicalData 
         
     
  
