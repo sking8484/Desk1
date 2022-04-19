@@ -42,10 +42,7 @@ class dataLink:
                 valuesString += "%s"
         columnString = columnString.replace(".","_")
 
-        if addAutoIncrementCol:
-            query = "CREATE TABLE " + tableName + " (ID int NOT NULL AUTO_INCREMENT, " + columnString + ", PRIMARY KEY (ID))"
-        else:
-            query = "CREATE TABLE " + tableName + "(" + columnString + ")"
+        query = "CREATE TABLE " + tableName + "(" + columnString + ")"
 
         self.cursor.execute(query)
         
@@ -153,7 +150,7 @@ class dataLink:
         query = "ALTER TABLE " + tableName + " DROP COLUMN "
         for col in columnList:
             if col != columnList[-1]:
-                query += col + ", "
+                query += col + ", DROP COLUMN "
             else:
                 query += col + ";"
         
@@ -195,7 +192,7 @@ class dataLink:
 
     def getLastRow(self, table:str) -> pd.DataFrame:
 
-        query = "SELECT * FROM " + table + " WHERE ID = (SELECT MAX(ID) FROM " + table + ")"
+        query = "SELECT * FROM " + table + " WHERE date = (SELECT MAX(date) FROM " + table + ")"
         self.cursor.execute(query)
         out = self.cursor.fetchall()
         temp_df = pd.DataFrame(out) 

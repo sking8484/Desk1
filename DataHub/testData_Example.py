@@ -26,18 +26,16 @@ print(db['dateVal'].values)
 
 credents = credentials()
 
-#testData = pd.read_csv(credents.stockDataPath, index_col = 0)
+testData = pd.read_csv(credents.stockDataPath, index_col = 0)
 
 
 
-'''
+
 connection = dataLink(credents.credentials)
-data = connection.returnTable("testStockTable")
-print(data)
-'''
+connection.dropColumns('test1',['AAPL','MSFT'])
 
-link = iexLink(credents.iexToken)
-link.getStockData(['AAPL', 'TSLA'],"20220331")
+#link = iexLink(credents.iexToken)
+#link.getStockData(['AAPL', 'TSLA'],"20220331")
 
 
 
