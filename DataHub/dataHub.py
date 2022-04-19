@@ -18,9 +18,6 @@ class dataHub:
         self.iexLink = iexLink()
         self.mainStockTable = credents.mainStockTable
     
-    def timeRules(self):
-        pass 
-    
     def getBuyUniverse(self) -> list:
 
         payload=pd.read_html('https://en.wikipedia.org/wiki/S%26P_100')
@@ -64,7 +61,7 @@ class dataHub:
             data = self.iexLink.getStockData(colsToAdd, "20050101")
             self.dataLink.joinTables("date",self.mainStockTable,data)
 
-    def timeRules(self, start:list, end:list) -> None:
+    def maintainUniverse(self, start:list, end:list) -> None:
         updated = None
         while True:
             currDay = date.today().strftime("%Y-%m-%d")
@@ -78,10 +75,8 @@ class dataHub:
                 print("Sleeping")
                 print(currTime)
                 print(startTime)
-                time.sleep(120)
+                time.sleep(600)
             
 
 
-data = dataHub()
-data.timeRules([22,0,0],[23,55,0])
 
