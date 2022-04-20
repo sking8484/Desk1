@@ -12,7 +12,7 @@ class ella:
         pass
     def runDataHub(self):
         datahub = dataHub()
-        datahub.maintainUniverse([15,0,0],[21,50,0])
+        datahub.maintainUniverse([1,30,0],[2,0,0])
 
 controller = ella()
 controller.runDataHub()
