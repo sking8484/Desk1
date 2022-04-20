@@ -27,10 +27,10 @@ class iexLink:
         token = "&token=" + self.token
         
         for stock in tickers:
-            time.sleep(.05)
+            time.sleep(.02)
             myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d") 
             base_url = BaseUrl + version + myParams + token
-            print(base_url)
+            
             data = requests.get(base_url)
             
             stockData = pd.DataFrame.from_dict(data.json(), orient="columns")[['date','close']]
