@@ -12,11 +12,11 @@ import time
 
 class dataHub:
     def __init__(self):
-        credents = credentials()
-        self.token = credents.iexToken
-        self.dataLink = dataLink(credents.credentials)
+        self.credents = credentials()
+        self.token = self.credents.iexToken
+        self.dataLink = dataLink(self.credents.credentials)
         self.iexLink = iexLink()
-        self.mainStockTable = credents.mainStockTable
+        self.mainStockTable = self.credents.mainStockTable
     
     def getBuyUniverse(self) -> list:
 
@@ -69,6 +69,7 @@ class dataHub:
             startTime = dt.time(start[0],start[1],start[2])
             endTime = dt.time(end[0], end[1], end[2])
             if np.is_busday(currDay) and startTime <= currTime <= endTime and updated != currDay:
+                self.dataLink = dataLink(self.credents.credentials)
                 updated = currDay
                 self.updateStockData()
             else:
