@@ -27,7 +27,7 @@ class iexLink:
         token = "&token=" + self.token
         
         for stock in tickers:
-            time.sleep(.1)
+            time.sleep(.05)
             myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d") 
             base_url = BaseUrl + version + myParams + token
             print(base_url)
