@@ -1,5 +1,11 @@
+import os 
+import sys 
+fpath = os.path.join(os.path.dirname(__file__),'DataHub')
+sys.path.append(fpath)
+
 from DataHub.dataHub import dataHub
 from ion import ion
+
 
 class ella:
     def __init__(self):
