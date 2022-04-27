@@ -1,3 +1,4 @@
+from threading import Timer
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,9 +10,11 @@ import datetime as dt
 from datetime import datetime, date
 from datetime import timedelta
 import time
+from timeRules import TimeRules
 
 class dataHub:
     def __init__(self):
+        self.TimeRules = TimeRules()
         self.credents = credentials()
         self.token = self.credents.iexToken
         self.dataLink = dataLink(self.credents.credentials)
@@ -56,27 +59,22 @@ class dataHub:
         self.dataLink.append(self.mainStockTable,data)
 
         colsToAdd = self.positionsToAdd()
-        print(colsToAdd)
+        
         if len(colsToAdd) > 0:
             data = self.iexLink.getStockData(colsToAdd, "20050101")
             self.dataLink.joinTables("date",self.mainStockTable,data)
 
     def maintainUniverse(self, start:list, end:list) -> None:
-        updated = None
+        lastUpdate = ""
+
         while True:
-            currDay = date.today().strftime("%Y-%m-%d")
-            currTime = datetime.now().time()
-            startTime = dt.time(start[0],start[1],start[2])
-            endTime = dt.time(end[0], end[1], end[2])
-            if np.is_busday(currDay) and startTime <= currTime <= endTime and updated != currDay:
+            if self.TimeRules.universeTimeRules(start, end, lastUpdate):
                 self.dataLink = dataLink(self.credents.credentials)
-                updated = currDay
+                lastUpdate = date.today().strftime("%Y-%m-%d")
                 self.updateStockData()
             else:
-                print("Sleeping")
-                print(currTime)
-                print(startTime)
-                time.sleep(600)
+                print("Universe Sleeping " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                time.sleep(10)
             
 
 
