@@ -25,8 +25,13 @@ class TimeRules:
         else:
             return False
 
-    def rebalanceTimeRules(self, i:int) -> bool:
-        if i % 2 == 0:
+    def rebalanceTimeRules(self, start:list, end:list, lastUpdate) -> bool:
+        currDay = date.today().strftime("%Y-%m-%d")
+        currTime = datetime.now().time()
+        startTime = dt.time(start[0],start[1],start[2])
+        endTime = dt.time(end[0], end[1], end[2])
+
+        if np.is_busday(currDay) and startTime <= currTime <= endTime and lastUpdate != currDay:
             return True 
         else:
             return False

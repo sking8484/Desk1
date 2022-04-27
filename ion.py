@@ -131,8 +131,10 @@ class ion:
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
         weights = np.floor(weights*1000)/1000
 
-        weights = pd.DataFrame(weights, index = cleaned_data.columns, columns = ['weights'])
-        print(weights)
+        weights = pd.DataFrame(weights, columns = ['weights'])
+        weights['date'] = datetime.datetime.today().strftime("%Y-%m-%d")
+        weights['Ticker'] = cleaned_data.columns
+        return weights
 
         
 

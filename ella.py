@@ -26,15 +26,21 @@ class ella:
         datahub.maintainUniverse([1,30,0],[2,0,0])
 
     def rebalance(self):
-        i = 0
-        DataLink = dataLink(self.credents.credentials)
+        lastUpdate = ""
+
+        """
+        This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
+        Most of this will be abstracted away.
+        """
+        
         while True:
-            if self.TimeRules.rebalanceTimeRules(i):
+            if self.TimeRules.rebalanceTimeRules([6,0,0],[7,0,0], lastUpdate):
+                DataLink = dataLink(self.credents.credentials)
                 data = DataLink.returnTable("test1")
-                self.ion.getOptimalWeights(data)
-                i += 1
+                weights_df = self.ion.getOptimalWeights(data)
+                DataLink.append("testModelHoldings",weights_df)
+                lastUpdate = date.today().strftime("%Y-%m-%d")
             else:
-                i += 1
                 print("Sleeping rebalance")
                 time.sleep(10)
             

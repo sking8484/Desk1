@@ -10,11 +10,10 @@ class dataLink:
         A class used to create a datalink between Python (Pandas specifically) and SQL.
         ...
         """
-
-        
         self.cnxn = sqlconnection.connect(**credentials)
         self.cursor = self.cnxn.cursor()
         print("Link Established")
+
     def createTable(self, tableName: str, dataFrame: pd.DataFrame, addAutoIncrementCol = True) -> None:
 
         """
@@ -33,7 +32,7 @@ class dataLink:
         dataFrame = dataFrame.replace(np.nan,0,regex=True)
 
         for col in dataFrame.columns:
-        
+            
             if (col != dataFrame.columns[-1]):
                 columnString += col + " TEXT, "
                 valuesString += "%s, "
@@ -44,6 +43,7 @@ class dataLink:
 
         query = "CREATE TABLE " + tableName + "(" + columnString + ")"
 
+        
         self.cursor.execute(query)
         
         self.append(tableName,dataFrame)
@@ -65,7 +65,7 @@ class dataLink:
         dataFrame = dataFrame.replace(np.nan,0,regex=True)
 
         for col in dataFrame.columns:
-        
+            print(col)
             if (col != dataFrame.columns[-1]):
                 columnString += col + ", "
                 valuesString += "%s, "
