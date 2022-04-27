@@ -1,7 +1,13 @@
+
+from typing import Optional
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import transpose as t
+from cvxopt import matrix
+from cvxopt.blas import dot
+from cvxopt.solvers import qp, options
+import datetime   
 
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
@@ -39,7 +45,7 @@ class ion:
         self.Q = Q
         self.delta = delta
     
-    def getGerberMatrix(self, Q = None):
+    def getGerberMatrix(self,data:pd.DataFrame, Q:int = None) -> pd.DataFrame:
         """
         A method to return the Gerber (modified COV) matrix using data
         ...
@@ -54,7 +60,7 @@ class ion:
             Q = self.Q
 
         
-        data = self.data.iloc[:, 1:].copy()
+        data = data.copy()
                                                   
         T = len(data)
         diag = np.diag(np.asarray(data.std()))
@@ -103,35 +109,31 @@ class ion:
 
         return G 
 
-    def getOptimalWeights(self, delta = None, gerber = True):
+    def getOptimalWeights(self, delta:Optional[float] = None, leverageAmt: Optional[float] = 1, gerber:Optional[bool] = True) -> pd.DataFrame:
         """
-        A method to get the optimal weights.
-            Equation we are optimizing is r^T(h), w.r.t h^t(S)h = d^2
-                r = returns vector
-                h = weights (solving for)
-                S = positive semidefinite comovement matrix
-                d = variance of portfolio
-        !!! Important, will be migrating to Orion shortly !!!
+        We are using CVXOPT. The exmaple we are following can be found here
+            https://cvxopt.org/examples/book/portfolio.html
+
+        Method to find optimal weights with the equation 
+
+        Parameters:
+            delta: The amount of risk we want to take
+            leverageAmt: The amount of leverage we want
+            gerber: Whether we should use the gerber matrix or not
+
         """
-        if delta == None:
-            delta = self.delta
 
-        returns = t(np.asmatrix(self.data.iloc[:, 1:].sum()))
-
-        if gerber:
-            cov_matrix = self.getGerberMatrix()
-        else:
-            cov_matrix = np.cov(self.numericalData, rowvar = False)
+        yearAgo = datetime.datetime.now() - datetime.timedelta(days=365)
+        data = self.data[self.data['date']>datetime.datetime.strftime(yearAgo,"%Y-%m-%d")]
+        data = data.drop(columns = ['date'])
+        data = data.astype(float)
+        cleaned_data = data.pct_change().dropna()
+        print(self.getGerberMatrix(cleaned_data)- np.cov(np.transpose(cleaned_data)))
         
         
         
-        cov_inv = np.linalg.inv(cov_matrix)
 
-        weightNum = delta * (cov_inv @ returns)
-        weightDenom = np.sqrt(t(returns) @ cov_inv @ returns)
 
-        return t(np.divide(weightNum, weightDenom))
-        
     
         
 
