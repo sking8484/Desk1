@@ -36,6 +36,7 @@ class ella:
         while True:
             if self.TimeRules.rebalanceTimeRules([4,0,0],[5,0,0], lastUpdate):
                 try:
+                    
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
                     data = DataLink.returnTable("test1")
