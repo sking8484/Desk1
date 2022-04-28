@@ -23,7 +23,7 @@ class ella:
 
     def runDataHub(self):
         datahub = dataHub()
-        datahub.maintainUniverse([1,30,0],[2,0,0])
+        datahub.maintainUniverse([2,0,0],[2,30,0])
 
     def rebalance(self):
         lastUpdate = ""
@@ -34,22 +34,21 @@ class ella:
         """
         
         while True:
-            if self.TimeRules.rebalanceTimeRules([6,0,0],[7,0,0], lastUpdate):
-                DataLink = dataLink(self.credents.credentials)
-                data = DataLink.returnTable("test1")
-                weights_df = self.ion.getOptimalWeights(data)
-                DataLink.append("testModelHoldings",weights_df)
-                lastUpdate = date.today().strftime("%Y-%m-%d")
+            if self.TimeRules.rebalanceTimeRules([4,0,0],[5,0,0], lastUpdate):
+                try:
+                    lastUpdate = date.today().strftime("%Y-%m-%d")
+                    DataLink = dataLink(self.credents.credentials)
+                    data = DataLink.returnTable("test1")
+                    weights_df = self.ion.getOptimalWeights(data)
+                    DataLink.append("testModelHoldings",weights_df)
+
+                except Exception as e:
+                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                    print(e)
             else:
                 print("Sleeping rebalance")
-                time.sleep(10)
+                time.sleep(600)
             
-
-
-    
-
-
-
 
 controller = ella()
 t1 = threading.Thread(target=controller.runDataHub).start()

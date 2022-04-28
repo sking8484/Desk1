@@ -69,12 +69,17 @@ class dataHub:
 
         while True:
             if self.TimeRules.universeTimeRules(start, end, lastUpdate):
+                
                 self.dataLink = dataLink(self.credents.credentials)
                 lastUpdate = date.today().strftime("%Y-%m-%d")
-                self.updateStockData()
+                try:
+                    self.updateStockData()
+                except Exception as e:
+                    print("Update Stock Data threw an exception at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                    print(e)
             else:
                 print("Universe Sleeping " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                time.sleep(10)
+                time.sleep(600)
             
 
 
