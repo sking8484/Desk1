@@ -41,7 +41,7 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(e)
             else:
-                print("Sleeping rebalance")
+                print("Sleeping optimization")
                 time.sleep(600)
     
     def rebalance(self):
@@ -74,7 +74,7 @@ optimization = input("If this it the optimization file, please enter -opt")
 if optimization == "-opt":
     t3 = threading.Thread(target = controller.optimize).start()
 else:
-       
+
     from DataHub.dataHub import dataHub
     from DataHub.dataLink import dataLink
 
