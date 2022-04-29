@@ -70,7 +70,7 @@ class ella:
 
 controller = ella()
 
-optimization = input("If this it the optimization file, please enter -opt")
+optimization = input("If this it the optimization file, please enter -opt: ")
 if optimization == "-opt":
     t3 = threading.Thread(target = controller.optimize).start()
 else:
