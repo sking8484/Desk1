@@ -26,6 +26,25 @@ class ella:
         datahub = dataHub()
         datahub.maintainUniverse([2,0,0],[2,30,0])
 
+    
+    def optimize(self):
+
+        lastUpdate = ""
+        while True:
+            if self.TimeRules.rebalanceTimeRules([3,0,0],[4,0,0], lastUpdate):
+                try:
+                    lastUpdate = date.today().strftime("%Y-%m-%d")
+                    data = pd.read_csv(self.credents.stockPriceFile)
+                    weights_df = self.ion.getOptimalWeights(data)
+                    weights_df.to_csv(self.credents.weightsFile, index = False)
+
+                except Exception as e:
+                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                    print(e)
+            else:
+                print("Sleeping rebalance")
+                time.sleep(600)
+    
     def rebalance(self):
         lastUpdate = ""
 
@@ -37,13 +56,9 @@ class ella:
         while True:
             if self.TimeRules.rebalanceTimeRules([4,30,0],[5,0,0], lastUpdate):
                 try:
-                    
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
-                    data = pd.read_csv("optimizationInfo/test.csv")
-                    
-                    weights_df = self.ion.getOptimalWeights(data)
-                    weights_df.to_csv("optimizationInfo/testWeights.csv", index = False)
+                    weights_df = pd.read_csv(self.credents.weightsFile)
                     DataLink.append("testModelHoldings",weights_df)
 
                 except Exception as e:
@@ -58,9 +73,10 @@ controller = ella()
 
 optimization = input("If this it the optimization file, please enter -opt")
 if optimization == "-opt":
-    t2 = threading.Thread(target = controller.rebalance).start()
+    t3 = threading.Thread(target = controller.optimize).start()
 else:   
     t1 = threading.Thread(target=controller.runDataHub).start()
+    t2 = threading.Thread(target = controller.rebalance).start()
 
 
 

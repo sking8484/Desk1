@@ -75,7 +75,7 @@ class dataHub:
                 try:
                     self.updateStockData()
                     data = self.dataLink.returnTable(self.mainStockTable)
-                    data.to_csv('optimizationInfo/test.csv',index=False)
+                    data.to_csv(self.credents.stockPriceFile,index=False)
                     
                     
                 except Exception as e:
