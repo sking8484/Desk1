@@ -66,7 +66,8 @@ class dataHub:
 
     def maintainUniverse(self, start:list, end:list) -> None:
         lastUpdate = ""
-
+        data = self.dataLink.returnTable(self.mainStockTable)
+        data.to_csv('optimizationInfo/test.csv',index=False)
         while True:
             if self.TimeRules.universeTimeRules(start, end, lastUpdate):
                 
@@ -74,6 +75,8 @@ class dataHub:
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 try:
                     self.updateStockData()
+                    
+                    
                 except Exception as e:
                     print("Update Stock Data threw an exception at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(e)

@@ -7,7 +7,10 @@ from cvxopt import matrix
 from cvxopt.blas import dot
 from cvxopt.solvers import qp, options
 
-def getOptimalWeights(self, data:pd.DataFrame, delta:Optional[float] = 50, leverageAmt: Optional[float] = 1.0, gerber:Optional[bool] = True) -> pd.DataFrame:
+
+
+
+def getOptimalWeights(data:pd.DataFrame, delta:Optional[float] = 50, leverageAmt: Optional[float] = 1.0, gerber:Optional[bool] = True) -> pd.DataFrame:
         """
         We are using CVXOPT. The exmaple we are following can be found here
             https://cvxopt.org/examples/book/portfolio.html

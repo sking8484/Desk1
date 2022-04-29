@@ -13,6 +13,7 @@ import datetime as dt
 from datetime import date, datetime
 import time
 from timeRules import TimeRules
+import pandas as pd
 
 class ella:
     def __init__(self):
@@ -34,13 +35,15 @@ class ella:
         """
         
         while True:
-            if self.TimeRules.rebalanceTimeRules([4,0,0],[5,0,0], lastUpdate):
+            if self.TimeRules.rebalanceTimeRules([18,0,0],[19,0,0], lastUpdate):
                 try:
                     
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
-                    data = DataLink.returnTable("test1")
+                    data = pd.read_csv("optimizationInfo/test.csv")
+                    
                     weights_df = self.ion.getOptimalWeights(data)
+                    weights_df.to_csv("optimizationInfo/testWeights.csv", index = False)
                     DataLink.append("testModelHoldings",weights_df)
 
                 except Exception as e:
