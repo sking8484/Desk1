@@ -35,7 +35,7 @@ class ella:
         """
         
         while True:
-            if self.TimeRules.rebalanceTimeRules([18,0,0],[19,0,0], lastUpdate):
+            if self.TimeRules.rebalanceTimeRules([4,30,0],[5,0,0], lastUpdate):
                 try:
                     
                     lastUpdate = date.today().strftime("%Y-%m-%d")
