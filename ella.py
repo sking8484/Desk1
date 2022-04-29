@@ -55,7 +55,12 @@ class ella:
             
 
 controller = ella()
-t1 = threading.Thread(target=controller.runDataHub).start()
-t2 = threading.Thread(target = controller.rebalance).start()
+
+optimization = input("If this it the optimization file, please enter -opt")
+if optimization == "-opt":
+    t2 = threading.Thread(target = controller.rebalance).start()
+else:   
+    t1 = threading.Thread(target=controller.runDataHub).start()
+
 
 
