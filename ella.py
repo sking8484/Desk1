@@ -4,8 +4,7 @@ import sys
 fpath = os.path.join(os.path.dirname(__file__),'DataHub')
 sys.path.append(fpath)
 
-from DataHub.dataHub import dataHub
-from DataHub.dataLink import dataLink
+
 from ion import ion
 from DataHub.privateKeys.privateData import credentials
 import threading
@@ -74,7 +73,11 @@ controller = ella()
 optimization = input("If this it the optimization file, please enter -opt")
 if optimization == "-opt":
     t3 = threading.Thread(target = controller.optimize).start()
-else:   
+else:
+       
+    from DataHub.dataHub import dataHub
+    from DataHub.dataLink import dataLink
+
     t1 = threading.Thread(target=controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
 
