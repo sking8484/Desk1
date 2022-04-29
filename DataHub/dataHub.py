@@ -1,7 +1,5 @@
 from threading import Timer
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 from dataLink import dataLink
 from iexLink import iexLink
 from privateKeys.privateData import credentials
