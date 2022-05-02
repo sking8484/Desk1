@@ -10,11 +10,19 @@ from datetime import timedelta
 import time
 
 class TimeRules:
+    
+    universeTime = {"start_time":[2,0,0],"end_time":[2,30,0]} # Get positions right after available
+    performanceTime = {"start_time":[1,0,0],"end_time":[23,0,0]} # Calc Perf prior to optimizing
+    optimizationTime = {"start_time":[3,0,0],"end_time":[4,0,0]} # Optimize Prior to Rebalance
+    rebalanceTime = {"start_time":[4,30,0],"end_time":[5,0,0]} # Rebalance
 
     def __init__(self):
         pass
 
-    def universeTimeRules(self, start:list, end:list, lastUpdate:str) -> bool:
+    def universeTimeRules(self, lastUpdate:str) -> bool:
+        start = TimeRules.universeTime["start_time"]
+        end = TimeRules.universeTime["end_time"]
+
         currDay = date.today().strftime("%Y-%m-%d")
         currTime = datetime.now().time()
         startTime = dt.time(start[0],start[1],start[2])
@@ -25,13 +33,44 @@ class TimeRules:
         else:
             return False
 
-    def rebalanceTimeRules(self, start:list, end:list, lastUpdate) -> bool:
+    def rebalanceTimeRules(self, lastUpdate) -> bool:
+        start = TimeRules.rebalanceTime["start_time"]
+        end = TimeRules.rebalanceTime["end_time"]
+
         currDay = date.today().strftime("%Y-%m-%d")
         currTime = datetime.now().time()
         startTime = dt.time(start[0],start[1],start[2])
         endTime = dt.time(end[0], end[1], end[2])
 
         if np.is_busday(currDay) and startTime <= currTime <= endTime and lastUpdate != currDay:
+            return True 
+        else:
+            return False
+
+    def optimizeTimeRules(self, lastUpdate) -> bool:
+        start = TimeRules.optimizeTimeRules["start_time"]
+        end = TimeRules.optimizeTimeRules["end_time"]
+
+        currDay = date.today().strftime("%Y-%m-%d")
+        currTime = datetime.now().time()
+        startTime = dt.time(start[0],start[1],start[2])
+        endTime = dt.time(end[0], end[1], end[2])
+
+        if np.is_busday(currDay) and startTime <= currTime <= endTime and lastUpdate != currDay:
+            return True 
+        else:
+            return False
+
+    def performanceTimeRules(self,lastUpdate)->bool:
+        start = TimeRules.performanceTime["start_time"]
+        end = TimeRules.performanceTime["end_time"]
+
+        currDay = date.today().strftime("%Y-%m-%d")
+        currTime = datetime.now().time()
+        startTime = dt.time(start[0],start[1],start[2])
+        endTime = dt.time(end[0], end[1], end[2])
+
+        if startTime <= currTime <= endTime and lastUpdate != currDay:
             return True 
         else:
             return False

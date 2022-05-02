@@ -62,11 +62,11 @@ class dataHub:
             data = self.iexLink.getStockData(colsToAdd, "20050101")
             self.dataLink.joinTables("date",self.mainStockTable,data)
 
-    def maintainUniverse(self, start:list, end:list) -> None:
+    def maintainUniverse(self) -> None:
         lastUpdate = ""
         
         while True:
-            if self.TimeRules.universeTimeRules(start, end, lastUpdate):
+            if self.TimeRules.universeTimeRules(lastUpdate):
                 
                 self.dataLink = dataLink(self.credents.credentials)
                 lastUpdate = date.today().strftime("%Y-%m-%d")

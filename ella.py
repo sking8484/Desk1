@@ -1,4 +1,5 @@
 
+from concurrent.futures import thread
 import os 
 import sys 
 fpath = os.path.join(os.path.dirname(__file__),'DataHub')
@@ -13,24 +14,26 @@ from datetime import date, datetime
 import time
 from timeRules import TimeRules
 import pandas as pd
+from reportingSuite.reportingSuite import reportingSuite
 
 class ella:
     def __init__(self):
         self.credents = credentials()
         self.ion = ion()
         self.TimeRules = TimeRules()
+        self.ReportingSuite = reportingSuite()
         
 
     def runDataHub(self):
         datahub = dataHub()
-        datahub.maintainUniverse([2,0,0],[2,30,0])
+        datahub.maintainUniverse()
 
     
     def optimize(self):
 
         lastUpdate = ""
         while True:
-            if self.TimeRules.rebalanceTimeRules([3,0,0],[4,0,0], lastUpdate):
+            if self.TimeRules.optimizeTimeRules(lastUpdate):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     data = pd.read_csv(self.credents.stockPriceFile)
@@ -53,12 +56,12 @@ class ella:
         """
         
         while True:
-            if self.TimeRules.rebalanceTimeRules([4,30,0],[5,0,0], lastUpdate):
+            if self.TimeRules.rebalanceTimeRules(lastUpdate):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
                     weights_df = pd.read_csv(self.credents.weightsFile)
-                    DataLink.append("testModelHoldings",weights_df)
+                    DataLink.append(self.credents.weightsTable,weights_df)
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
@@ -66,6 +69,21 @@ class ella:
             else:
                 print("Sleeping rebalance")
                 time.sleep(600)
+
+    def performanceCalc(self):
+        lastUpdate = ""
+        while True:
+            if self.TimeRules.performanceTimeRules(lastUpdate):
+                try:
+                    lastUpdate = date.today().strftime("%Y-%m-%d")
+                    self.ReportingSuite.calcPerformance()
+                except Exception as e:
+                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                    print(e)
+            else:
+                print("Sleeping performance Calc")
+                time.sleep(600)
+    
             
 
 controller = ella()
@@ -80,6 +98,7 @@ else:
 
     t1 = threading.Thread(target=controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
+    t4 = threading.Thread(target = controller.performanceCalc).start()
 
 
 
