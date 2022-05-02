@@ -48,8 +48,8 @@ class TimeRules:
             return False
 
     def optimizeTimeRules(self, lastUpdate) -> bool:
-        start = TimeRules.optimizeTimeRules["start_time"]
-        end = TimeRules.optimizeTimeRules["end_time"]
+        start = TimeRules.optimizationTime["start_time"]
+        end = TimeRules.optimizationTime["end_time"]
 
         currDay = date.today().strftime("%Y-%m-%d")
         currTime = datetime.now().time()

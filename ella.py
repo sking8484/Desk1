@@ -17,19 +17,19 @@ import pandas as pd
 
 
 class ella:
-    def __init__(self):
+    def __init__(self) -> None:
         self.credents = credentials()
         self.ion = ion()
         self.TimeRules = TimeRules()
-        self.ReportingSuite = reportingSuite()
+        self.ReportingSuite = None
         
 
-    def runDataHub(self):
+    def runDataHub(self) -> None:
         datahub = dataHub()
         datahub.maintainUniverse()
 
     
-    def optimize(self):
+    def optimize(self) -> None:
 
         lastUpdate = ""
         while True:
@@ -47,7 +47,7 @@ class ella:
                 print("Sleeping optimization")
                 time.sleep(600)
     
-    def rebalance(self):
+    def rebalance(self) -> None:
         lastUpdate = ""
 
         """
@@ -97,6 +97,7 @@ else:
     from DataHub.dataLink import dataLink
     from reportingSuite.reportingSuite import reportingSuite
 
+    controller.reportingSuite = reportingSuite()
     t1 = threading.Thread(target=controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
     t4 = threading.Thread(target = controller.performanceCalc).start()
