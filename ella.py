@@ -14,7 +14,7 @@ from datetime import date, datetime
 import time
 from timeRules import TimeRules
 import pandas as pd
-from reportingSuite.reportingSuite import reportingSuite
+
 
 class ella:
     def __init__(self):
@@ -95,6 +95,7 @@ else:
 
     from DataHub.dataHub import dataHub
     from DataHub.dataLink import dataLink
+    from reportingSuite.reportingSuite import reportingSuite
 
     t1 = threading.Thread(target=controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
