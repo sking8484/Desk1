@@ -70,7 +70,7 @@ class TimeRules:
         startTime = dt.time(start[0],start[1],start[2])
         endTime = dt.time(end[0], end[1], end[2])
 
-        if startTime <= currTime <= endTime and lastUpdate != currDay:
+        if np.is_busday(currDay) and startTime <= currTime <= endTime and lastUpdate != currDay:
             return True 
         else:
             return False
