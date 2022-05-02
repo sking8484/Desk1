@@ -21,7 +21,7 @@ class ella:
         self.credents = credentials()
         self.ion = ion()
         self.TimeRules = TimeRules()
-        self.ReportingSuite = None
+        
         
 
     def runDataHub(self) -> None:
@@ -71,6 +71,7 @@ class ella:
                 time.sleep(600)
 
     def performanceCalc(self):
+        self.ReportingSuite = reportingSuite()
         lastUpdate = ""
         while True:
             if self.TimeRules.performanceTimeRules(lastUpdate):
