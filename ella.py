@@ -47,7 +47,7 @@ class ella:
                 print("Sleeping optimization")
                 time.sleep(600)
     
-    def rebalance(self) -> None:
+    def updateWeights(self) -> None:
         lastUpdate = ""
 
         """
@@ -56,7 +56,7 @@ class ella:
         """
         
         while True:
-            if self.TimeRules.rebalanceTimeRules(lastUpdate):
+            if self.TimeRules.updateWeightsTimeRules(lastUpdate):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
@@ -67,8 +67,32 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(e)
             else:
+                print("Sleeping weights update")
+                time.sleep(600)
+
+    def rebalance(self) -> None:
+        lastUpdate = ""
+
+        """
+        This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
+        Most of this will be abstracted away.
+        """
+        link = alpacaLink()
+        while True:
+            if self.TimeRules.rebalanceTimeRules(lastUpdate):
+                link.rebalance()
+                try:
+                    lastUpdate = date.today().strftime("%Y-%m-%d")
+                    link.rebalance()
+                    
+
+                except Exception as e:
+                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+                    print(e)
+            else:
                 print("Sleeping rebalance")
                 time.sleep(600)
+
 
     def performanceCalc(self):
         self.ReportingSuite = reportingSuite()
@@ -97,11 +121,13 @@ else:
     from DataHub.dataHub import dataHub
     from DataHub.dataLink import dataLink
     from reportingSuite.reportingSuite import reportingSuite
+    from alpacaLink import alpacaLink
 
     controller.reportingSuite = reportingSuite()
-    t1 = threading.Thread(target=controller.runDataHub).start()
+    t1 = threading.Thread(target = controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
     t4 = threading.Thread(target = controller.performanceCalc).start()
+    t5 = threading.Thread(target = controller.updateWeights).start()
 
 
 
