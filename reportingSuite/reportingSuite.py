@@ -23,7 +23,7 @@ class reportingSuite:
         optimizationWeightsAsOf = (recentDate - timedelta(days = daysToShiftBack)).strftime("%Y-%m-%d")
         modelWeightsAsOf = modelWeights[modelWeights['date'] == optimizationWeightsAsOf]
         
-        priceChanges = stockData.drop(columns = 'date').astype(float).pct_change().iloc[-1,:]
+        priceChanges = stockData.drop(columns = 'date').astype(float).replace(to_replace=0,method='ffill').pct_change().iloc[-1,:]
         pct_change = 0
         for ticker in modelWeightsAsOf['Ticker']:
             pct_change += modelWeightsAsOf[modelWeightsAsOf['Ticker'] == ticker]['weights'].astype(float).values[0] * priceChanges[ticker]
