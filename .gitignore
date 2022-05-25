@@ -1,3 +1,4 @@
 privateKeys/
 ssl/
 *.csv
+weightsFile
