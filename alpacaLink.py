@@ -15,6 +15,7 @@ class alpacaLink:
         self.alpaca = tradeapi.REST(self.credents.alpaca_pubkey,self.credents.alpaca_seckey,self.credents.alpaca_baseurl,'v2')
         account = self.alpaca.get_account()
         self.buying_power = float(account.equity)
+        print(self.buying_power)
 
     def initDataLink(self):
         self.dataLink = dataLink(self.credents.credentials)
@@ -59,6 +60,7 @@ class alpacaLink:
             
     def placeTrades(self, finalOrders):
         for order in finalOrders:
+            time.sleep(0.5)
             if (order['orderType'] == 'LIQ'):
                 try:
                     self.alpaca.close_position(order['position'])

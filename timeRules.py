@@ -14,7 +14,7 @@ class TimeRules:
     universeTime = {"start_time":[2,0,0],"end_time":[2,30,0]} # Get positions right after available
     performanceTime = {"start_time":[3,0,0],"end_time":[3,30,0]} # Calc Perf prior to optimizing
     optimizationTime = {"start_time":[3,0,0],"end_time":[4,0,0]} # Optimize Prior to Rebalance
-    rebalanceTime = {"start_time":[12,30,0],"end_time":[1,0,0]} # Rebalance
+    rebalanceTime = {"start_time":[12,30,0],"end_time":[23,0,0]} # Rebalance
     updateWeightsTime = {'start_time':[3,31,0],'end_time':[4,0,0]}
 
     def __init__(self):
