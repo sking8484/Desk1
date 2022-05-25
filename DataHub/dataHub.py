@@ -31,7 +31,7 @@ class dataHub:
     def getCurrentUniverse(self) -> list:
 
         columns = self.dataLink.getLastRow(self.mainStockTable).columns
-        return [column.replace("_",".") for column in columns if column != "ID" and column != "date"]
+        return [column for column in columns if column != "ID" and column != "date" and '.' not in column]
     
     def positionsToRemove(self) -> list:
 

@@ -18,7 +18,7 @@ class reportingSuite:
 
         recentStockWeekday = pd.to_datetime(stockData.iloc[-1,:]['date']).weekday()
         recentDate = pd.to_datetime(stockData.iloc[-1,:]['date'])
-        daysToShiftBack = recentStockWeekday + 3
+        daysToShiftBack = 0
 
         optimizationWeightsAsOf = (recentDate - timedelta(days = daysToShiftBack)).strftime("%Y-%m-%d")
         modelWeightsAsOf = modelWeights[modelWeights['date'] == optimizationWeightsAsOf]
@@ -31,20 +31,18 @@ class reportingSuite:
         data = {"date":[recentDate.strftime("%Y-%m-%d")],"pct_change":[pct_change]}
         data = pd.DataFrame.from_dict(data)
         
-        currPerf = DataLink.returnTable(self.credents.perfTable)
         
-        if currPerf.iloc[-1,:]['date'] == recentDate.strftime("%Y-%m-%d"):
-            print("Recent dates perf already recording, skipping perf calcs")
-        else:    
-            try:
+
+        try:
+            currPerf = DataLink.returnTable(self.credents.perfTable)
+            if currPerf.iloc[-1,:]['date'] == recentDate.strftime("%Y-%m-%d"):
+                print("Recent dates perf already recording, skipping perf calcs")
+            else:   
                 DataLink.append(self.credents.perfTable,data)
-            except Exception as e:
-                print("Couldn't Append. Trying to create")
-                try:
-                    DataLink.createTable(self.credents.perfTable, data)
-                except Exception as e:
-                    print(e)
-                    print("Couldn't create table either. Needs to be fixed")
+        except Exception as e:
+            print("Couldn't Append. Trying to create")
+            print(e)
+            DataLink.createTable(self.credents.perfTable, data)
             
         
 

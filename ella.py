@@ -61,7 +61,10 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
                     weights_df = pd.read_csv(self.credents.weightsFile)
-                    DataLink.append(self.credents.weightsTable,weights_df)
+                    try:
+                        DataLink.append(self.credents.weightsTable,weights_df)
+                    except:
+                        DataLink.createTable(self.credents.weightsTable,weights_df)
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
@@ -80,12 +83,9 @@ class ella:
         link = alpacaLink()
         while True:
             if self.TimeRules.rebalanceTimeRules(lastUpdate):
-                link.rebalance()
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     link.rebalance()
-                    
-
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(e)

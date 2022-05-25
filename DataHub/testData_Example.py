@@ -28,11 +28,8 @@ credents = credentials()
 
 testData = pd.read_csv(credents.stockDataPath, index_col = 0)
 
-
-
-
 connection = dataLink(credents.credentials)
-connection.dropColumns('test1',['AAPL','MSFT'])
+connection.createTable(credents.mainStockTable,testData)
 
 #link = iexLink(credents.iexToken)
 #link.getStockData(['AAPL', 'TSLA'],"20220331")

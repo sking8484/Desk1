@@ -22,7 +22,7 @@ class iexLink:
     def getStockData(self, tickers: list, startDate: str, sinceSpecificDate = True) -> pd.DataFrame:
 
         firstJoin = True
-        BaseUrl = "https://sandbox.iexapis.com/"
+        BaseUrl = "https://cloud.iexapis.com/"
         version = "stable/"
         token = "&token=" + self.token
         
