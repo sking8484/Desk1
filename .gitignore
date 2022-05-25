@@ -1,4 +1,4 @@
 privateKeys/
 ssl/
 *.csv
-weightsFile.txt
+*weights*
