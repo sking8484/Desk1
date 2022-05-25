@@ -72,13 +72,13 @@ class dataHub:
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 try:
                     self.updateStockData()
-                    data = self.dataLink.returnTable(self.mainStockTable)
-                    data.to_csv(self.credents.stockPriceFile,index=False)
-                    
                     
                 except Exception as e:
                     print("Update Stock Data threw an exception at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(e)
+                    
+                data = self.dataLink.returnTable(self.mainStockTable)
+                data.to_csv(self.credents.stockPriceFile,index=False)
             else:
                 print("Universe Sleeping " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                 time.sleep(600)

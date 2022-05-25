@@ -118,7 +118,9 @@ class ion:
         data = data[data['date']>datetime.datetime.strftime(yearAgo,"%Y-%m-%d")]
         data = data.drop(columns = ['date'])
         data = data.astype(float)
+        data.replace(to_replace=0,method='ffill', inplace=True)
         cleaned_data = data.pct_change().dropna()
+        
         N = len(cleaned_data.columns)
 
         comovement = matrix(self.getGerberMatrix(cleaned_data).values)
