@@ -14,7 +14,7 @@ class alpacaLink:
     def initAlpaca(self):
         self.alpaca = tradeapi.REST(self.credents.alpaca_pubkey,self.credents.alpaca_seckey,self.credents.alpaca_baseurl,'v2')
         account = self.alpaca.get_account()
-        self.buying_power = float(account.equity)
+        self.buying_power = float(account.equity)*(1.98)
         print(self.buying_power)
 
     def initDataLink(self):
@@ -25,11 +25,11 @@ class alpacaLink:
         self.alpaca.cancel_all_orders()
 
     def rebalance(self):
+        self.getOpenPosCloseOpenOrders()
         self.initAlpaca()
         self.initDataLink()
-        self.getOpenPosCloseOpenOrders()
         
-
+        
         ordersToSubmit = self.dataLink.returnTable(self.credents.weightsTable)
         ordersToSubmit = ordersToSubmit[ordersToSubmit['date'] == max(ordersToSubmit['date'])]
         ordersToSubmit = json.loads(ordersToSubmit.to_json(orient='records'))
