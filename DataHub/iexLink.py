@@ -1,6 +1,6 @@
 from privateKeys.privateData import credentials
 from dataLink import dataLink
-import pandas as pd 
+import pandas as pd
 from datetime import date
 import requests
 from datetime import datetime
@@ -25,14 +25,14 @@ class iexLink:
         BaseUrl = "https://cloud.iexapis.com/"
         version = "stable/"
         token = "&token=" + self.token
-        
+
         for stock in tickers:
             time.sleep(.1)
-            myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d") 
+            myParams = "time-series/HISTORICAL_PRICES/" + stock + "?from=" + startDate + "&to=" + date.today().strftime("%Y%m%d")
             base_url = BaseUrl + version + myParams + token
-            
+
             data = requests.get(base_url)
-            
+
             stockData = pd.DataFrame.from_dict(data.json(), orient="columns")[['date','close']]
             stockData.columns = ['date', stock]
 
@@ -41,14 +41,14 @@ class iexLink:
                 firstJoin = False
             else:
                 historicalData = historicalData.merge(stockData, on = 'date', how = 'left')
-        
+
         historicalData['date'] = pd.to_datetime(historicalData['date'], unit = 'ms')
         historicalData = historicalData.sort_values(by = "date")
         historicalData['date'] = historicalData['date'].dt.strftime("%Y-%m-%d")
 
-        return historicalData 
-        
-    
- 
+        return historicalData
+
+
+
 
 
