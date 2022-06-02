@@ -13,9 +13,6 @@ class alpacaLink:
 
     def initAlpaca(self):
         self.alpaca = tradeapi.REST(self.credents.alpaca_pubkey,self.credents.alpaca_seckey,self.credents.alpaca_baseurl,'v2')
-        account = self.alpaca.get_account()
-        self.buying_power = float(account.equity)*(1.98)
-        print(self.buying_power)
 
     def initDataLink(self):
         self.dataLink = dataLink(self.credents.credentials)
@@ -24,16 +21,21 @@ class alpacaLink:
         self.openPositions = self.alpaca.list_positions()
         self.alpaca.cancel_all_orders()
 
+    def getBuyingPower(self):
+        account = self.alpaca.get_account()
+        self.buying_power = float(account.equity)*(1.98)
+
     def rebalance(self):
-        self.getOpenPosCloseOpenOrders()
         self.initAlpaca()
+        self.getOpenPosCloseOpenOrders()
         self.initDataLink()
-        
-        
+        self.g
+
+
         ordersToSubmit = self.dataLink.returnTable(self.credents.weightsTable)
         ordersToSubmit = ordersToSubmit[ordersToSubmit['date'] == max(ordersToSubmit['date'])]
         ordersToSubmit = json.loads(ordersToSubmit.to_json(orient='records'))
-        
+
         self.positionsToTrade = [pos['Ticker'].upper() for pos in ordersToSubmit]
         self.openPositionsList = [pos.symbol for pos in self.openPositions]
         self.finalOrders = []
@@ -41,12 +43,12 @@ class alpacaLink:
         self.finalOrders += [self.createTrades(order) for order in ordersToSubmit]
 
         self.placeTrades(self.finalOrders)
-    
+
     def sellNonUniverse(self):
         for pos in self.openPositions:
             if not pos.symbol in self.positionsToTrade:
                 self.finalOrders.append({'position':pos.symbol,'orderType':'LIQ'})
-    
+
     def createTrades(self, currOrder):
         if round(float(currOrder['weights']),2) == 0:
             currOrder['orderType']="LIQ"
@@ -57,7 +59,7 @@ class alpacaLink:
                 currOrder['marketVal'] -= float(self.alpaca.get_position(currOrder['Ticker'].upper()).market_value)
         currOrder['Ticker'] = currOrder['Ticker'].upper()
         return currOrder
-            
+
     def placeTrades(self, finalOrders):
         for order in finalOrders:
             time.sleep(0.5)
@@ -81,10 +83,9 @@ class alpacaLink:
                     )
                 except:
                     pass
-            
-        
-    
 
 
-    
-    
+
+
+
+

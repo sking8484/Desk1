@@ -1,7 +1,9 @@
 
 from concurrent.futures import thread
-import os 
-import sys 
+from inspect import trace
+import os
+import sys
+import traceback
 fpath = os.path.join(os.path.dirname(__file__),'DataHub')
 sys.path.append(fpath)
 
@@ -21,14 +23,14 @@ class ella:
         self.credents = credentials()
         self.ion = ion()
         self.TimeRules = TimeRules()
-        
-        
+
+
 
     def runDataHub(self) -> None:
         datahub = dataHub()
         datahub.maintainUniverse()
 
-    
+
     def optimize(self) -> None:
 
         lastUpdate = ""
@@ -42,11 +44,11 @@ class ella:
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                    print(e)
+                    print(traceback.print_exc())
             else:
                 print("Sleeping optimization")
                 time.sleep(600)
-    
+
     def updateWeights(self) -> None:
         lastUpdate = ""
 
@@ -54,7 +56,7 @@ class ella:
         This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
         Most of this will be abstracted away.
         """
-        
+
         while True:
             if self.TimeRules.updateWeightsTimeRules(lastUpdate):
                 try:
@@ -68,7 +70,7 @@ class ella:
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                    print(e)
+                    print(traceback.print_exc())
             else:
                 print("Sleeping weights update")
                 time.sleep(600)
@@ -88,7 +90,7 @@ class ella:
                     link.rebalance()
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                    print(e)
+                    print(traceback.print_exc())
             else:
                 print("Sleeping rebalance")
                 time.sleep(600)
@@ -104,12 +106,12 @@ class ella:
                     self.ReportingSuite.calcPerformance()
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                    print(e)
+                    print(traceback.print_exc())
             else:
                 print("Sleeping performance Calc")
                 time.sleep(600)
-    
-            
+
+
 
 controller = ella()
 

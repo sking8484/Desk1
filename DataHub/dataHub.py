@@ -1,4 +1,5 @@
 from threading import Timer
+import traceback
 import pandas as pd
 from dataLink import dataLink
 from iexLink import iexLink
@@ -18,28 +19,28 @@ class dataHub:
         self.dataLink = dataLink(self.credents.credentials)
         self.iexLink = iexLink()
         self.mainStockTable = self.credents.mainStockTable
-    
+
     def getBuyUniverse(self) -> list:
 
         payload=pd.read_html('https://en.wikipedia.org/wiki/S%26P_100')
         stock_table = payload[2]
         universe = list(stock_table['Symbol'].values)
-        
 
-        return universe 
+
+        return universe
 
     def getCurrentUniverse(self) -> list:
 
         columns = self.dataLink.getLastRow(self.mainStockTable).columns
         return [column for column in columns if column != "ID" and column != "date" and '.' not in column]
-    
+
     def positionsToRemove(self) -> list:
 
         currUniverse = self.getCurrentUniverse()
         buyUniverse = self.getBuyUniverse()
         posToSell = list(set(currUniverse) - set(buyUniverse))
         return posToSell
-    
+
     def positionsToAdd(self) -> list:
         return list(set(self.getBuyUniverse())- set(self.getCurrentUniverse()))
 
@@ -57,32 +58,32 @@ class dataHub:
         self.dataLink.append(self.mainStockTable,data)
 
         colsToAdd = self.positionsToAdd()
-        
+
         if len(colsToAdd) > 0:
             data = self.iexLink.getStockData(colsToAdd, "20050101")
             self.dataLink.joinTables("date",self.mainStockTable,data)
 
     def maintainUniverse(self) -> None:
         lastUpdate = ""
-        
+
         while True:
             if self.TimeRules.universeTimeRules(lastUpdate):
-                
+
                 self.dataLink = dataLink(self.credents.credentials)
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 try:
                     self.updateStockData()
-                    
+
                 except Exception as e:
                     print("Update Stock Data threw an exception at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
-                    print(e)
-                    
+                    print(traceback.print_exc())
+
                 data = self.dataLink.returnTable(self.mainStockTable)
                 data.to_csv(self.credents.stockPriceFile,index=False)
             else:
                 print("Universe Sleeping " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                 time.sleep(600)
-            
+
 
 
 
