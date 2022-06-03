@@ -29,7 +29,7 @@ class alpacaLink:
         self.initAlpaca()
         self.getOpenPosCloseOpenOrders()
         self.initDataLink()
-        self.g
+        self.getBuyingPower()
 
 
         ordersToSubmit = self.dataLink.returnTable(self.credents.weightsTable)
