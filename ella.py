@@ -28,7 +28,7 @@ class ella:
 
     def runDataHub(self) -> None:
         datahub = dataHub()
-        datahub.maintainUniverse()
+        datahub.maintainData()
 
 
     def optimize(self) -> None:

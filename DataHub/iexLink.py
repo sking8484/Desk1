@@ -48,8 +48,31 @@ class iexLink:
 
         return historicalData
 
-    def getStockInfo(self, tickers: list) -> pd.DataFrame:
-        pass
+    def countrySectorInfo(self, tickers: list) -> pd.DataFrame:
+        firstJoin = True
+        BaseUrl = "https://cloud.iexapis.com/"
+        version = "stable/"
+        token = "token=" + self.token
+
+        for stock in tickers:
+            #time.sleep(.1)
+            myParams = 'stock/' + stock + '/company?'
+            base_url = BaseUrl + version + myParams + token
+
+            data = requests.get(base_url)
+
+            stockData = pd.DataFrame.from_dict([data.json()], orient="columns")[['symbol', 'sector', 'industry', 'country']]
+            stockData.columns = ['symbol', 'sector','industry','country']
+
+            if firstJoin == True:
+                historicalData = stockData
+                firstJoin = False
+            else:
+                historicalData = pd.concat([historicalData,stockData], ignore_index=True)
+
+        historicalData['date'] = datetime.today().strftime('%Y-%m-%d')
+
+        return historicalData
 
 
 
