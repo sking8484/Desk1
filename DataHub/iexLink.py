@@ -48,6 +48,9 @@ class iexLink:
 
         return historicalData
 
+    def getStockInfo(self, tickers: list) -> pd.DataFrame:
+        pass
+
 
 
 
