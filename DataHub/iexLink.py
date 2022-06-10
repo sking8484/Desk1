@@ -74,6 +74,10 @@ class iexLink:
 
         return historicalData
 
+    def getFactorData(self) -> None:
+        # Get factor definition information from iexFactors.py
+        pass
+
 
 
 
