@@ -35,7 +35,7 @@ class ella:
 
         lastUpdate = ""
         while True:
-            if self.TimeRules.optimizeTimeRules(lastUpdate):
+            if self.TimeRules.getTiming(lastUpdate, ['optimize']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     data = pd.read_csv(self.credents.stockPriceFile)
@@ -46,7 +46,6 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
-                print("Sleeping optimization")
                 time.sleep(600)
 
     def updateWeights(self) -> None:
@@ -58,7 +57,7 @@ class ella:
         """
 
         while True:
-            if self.TimeRules.updateWeightsTimeRules(lastUpdate):
+            if self.TimeRules.getTiming(lastUpdate, ['updateWeights']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
@@ -72,7 +71,6 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
-                print("Sleeping weights update")
                 time.sleep(600)
 
     def rebalance(self) -> None:
@@ -84,7 +82,7 @@ class ella:
         """
         link = alpacaLink()
         while True:
-            if self.TimeRules.rebalanceTimeRules(lastUpdate):
+            if self.TimeRules.getTiming(lastUpdate, ['rebalance']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     link.rebalance()
@@ -92,7 +90,6 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
-                print("Sleeping rebalance")
                 time.sleep(600)
 
 
@@ -100,7 +97,7 @@ class ella:
         self.ReportingSuite = reportingSuite()
         lastUpdate = ""
         while True:
-            if self.TimeRules.performanceTimeRules(lastUpdate):
+            if self.TimeRules.getTiming(lastUpdate, ['performanceCalc']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     self.ReportingSuite.calcPerformance()
@@ -108,7 +105,7 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
-                print("Sleeping performance Calc")
+
                 time.sleep(600)
 
 

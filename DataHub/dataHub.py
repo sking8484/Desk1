@@ -66,7 +66,7 @@ class dataHub:
         lastUpdate = ""
 
         while True:
-            if self.TimeRules.universeTimeRules(lastUpdate):
+            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainUniverse']):
                 self.dataLink = dataLink(self.credents.credentials)
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 try:
@@ -79,21 +79,28 @@ class dataHub:
                 data = self.dataLink.returnTable(self.mainStockTable)
                 data.to_csv(self.credents.stockPriceFile,index=False)
             else:
-                print("Universe Sleeping " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                 time.sleep(600)
 
     def maintainTopDownData(self) -> None:
-        self.dataLink = dataLink(self.credents.credentials)
-        topDownData = self.iexLink.countrySectorInfo(self.getCurrentUniverse())
-        try:
-            self.dataLink.append(self.credents.stockInfoTable, topDownData)
-        except Exception as e:
-            print(traceback.print_exc())
-            print("Trying to create table")
-            try:
-                self.dataLink.createTable(self.credents.stockInfoTable, topDownData)
-            except Exception as e:
-                print(traceback.print_exc())
+
+        lastUpdate = ""
+
+        while True:
+            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainTopDownData']):
+
+                self.dataLink = dataLink(self.credents.credentials)
+                topDownData = self.iexLink.countrySectorInfo(self.getCurrentUniverse())
+                try:
+                    self.dataLink.append(self.credents.stockInfoTable, topDownData)
+                except Exception as e:
+                    print(traceback.print_exc())
+                    print("Trying to create table")
+                    try:
+                        self.dataLink.createTable(self.credents.stockInfoTable, topDownData)
+                    except Exception as e:
+                        print(traceback.print_exc())
+            else:
+                time.sleep(600)
 
 
 
