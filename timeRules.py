@@ -16,9 +16,11 @@ class TimeRules:
         self.timeRules = {
             "dataHub":
                 {"maintainUniverse":
-                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]}
-                , "maintainTopDownData":
-                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]}
+                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]},
+                "maintainTopDownData":
+                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]},
+                "maintainFactors":
+                    {"start_time":[0,0,0],"end_time":[23,30,0], "day":[]}
                 },
             "performanceCalc":
                 {"start_time":[4,20,0],"end_time":[4,35,0], "day":[]},
@@ -47,7 +49,7 @@ class TimeRules:
         startTime = dt.time(start[0],start[1],start[2])
         endTime = dt.time(end[0], end[1], end[2])
 
-        if np.is_busday(currDay) and startTime <= currTime <= endTime and lastUpdate != currDay and (len(day) == 0 or dayOfWeek in day):
+        if startTime <= currTime <= endTime and lastUpdate != currDay and (len(day) == 0 or dayOfWeek in day):
             print("Running " + str(callingFunction))
             return True
         else:

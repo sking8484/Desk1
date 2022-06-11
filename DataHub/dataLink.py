@@ -1,7 +1,9 @@
+from ipaddress import collapse_addresses
 import pandas as pd
 import mysql.connector as sqlconnection
-
+from inspect import trace
 import numpy as np
+import traceback
 
 class dataLink:
     def __init__(self, credentials: dict):
@@ -32,7 +34,7 @@ class dataLink:
         dataFrame = dataFrame.replace(np.nan,0,regex=True)
 
         for col in dataFrame.columns:
-            
+
             if (col != dataFrame.columns[-1]):
                 columnString += col + " TEXT, "
                 valuesString += "%s, "
@@ -43,14 +45,14 @@ class dataLink:
 
         query = "CREATE TABLE " + tableName + "(" + columnString + ")"
 
-        
+
         self.cursor.execute(query)
-        
+
         self.append(tableName,dataFrame)
         self.commit()
 
     def returnTable(self, tableName: str) -> pd.DataFrame:
-        
+
         query = "SELECT * FROM " + tableName
         self.cursor.execute(query)
         out = self.cursor.fetchall()
@@ -60,24 +62,29 @@ class dataLink:
         return db
 
     def append(self, tableName: str, dataFrame: pd.DataFrame) -> None:
-        columnString = ""
-        valuesString = ""
-        dataFrame = dataFrame.replace(np.nan,0,regex=True)
+        try:
+            columnString = ""
+            valuesString = ""
+            dataFrame = dataFrame.replace(np.nan,0,regex=True)
 
-        for col in dataFrame.columns:
-            print(col)
-            if (col != dataFrame.columns[-1]):
-                columnString += col + ", "
-                valuesString += "%s, "
-            else:
-                columnString += col 
-                valuesString += "%s"
-        columnString = columnString.replace(".","_")
+            for col in dataFrame.columns:
+                print(col)
+                if (col != dataFrame.columns[-1]):
+                    columnString += col + ", "
+                    valuesString += "%s, "
+                else:
+                    columnString += col
+                    valuesString += "%s"
+            columnString = columnString.replace(".","_")
 
-        query = "INSERT INTO " + tableName + " (" + columnString + ") VALUES (" + valuesString + ")"
-        
-        self.cursor.executemany(query,dataFrame.values.tolist())
-        self.commit()
+            query = "INSERT INTO " + tableName + " (" + columnString + ") VALUES (" + valuesString + ")"
+
+            self.cursor.executemany(query,dataFrame.values.tolist())
+            self.commit()
+        except Exception as e:
+            print(traceback.print_exc())
+            print("Could not find table. Creating now")
+            self.createTable(tableName, dataFrame)
 
     def joinTables(self, joinColumn, originalTableName, joinTableDataFrame):
 
@@ -85,7 +92,7 @@ class dataLink:
         A method to join two tables
             Creates a new table with same table name, but now with joined columns
 
-            1. Creates an interim table using the createTable method without autoIncs. 
+            1. Creates an interim table using the createTable method without autoIncs.
             2. Creates a new pandas dataframe from the two joins
             3. Creates a new table called originalTableName_ from the dataframe
             4. Deletes originalTableName table
@@ -101,7 +108,7 @@ class dataLink:
         joinTableDataFrame: The new data that should be joined
         """
 
-        #1.) Create interim table 
+        #1.) Create interim table
         self.createTable('interimTable', joinTableDataFrame, False)
 
         #2.) Create new pandas dataframe from joins
@@ -109,7 +116,7 @@ class dataLink:
         self.cursor.execute(query)
 
         out = self.cursor.fetchall()
-        temp_df = pd.DataFrame(out) 
+        temp_df = pd.DataFrame(out)
         field_names = [i[0] for i in self.cursor.description]
         temp_df.columns = field_names
 
@@ -146,14 +153,14 @@ class dataLink:
         """
         if len(columnList) == 0:
             return
-            
+
         query = "ALTER TABLE " + tableName + " DROP COLUMN "
         for col in columnList:
             if col != columnList[-1]:
                 query += col + ", DROP COLUMN "
             else:
                 query += col + ";"
-        
+
         self.cursor.execute(query)
         self.commit()
 
@@ -166,7 +173,7 @@ class dataLink:
 
         Attributes
         ----------
-        tableName: The name of the table to delete 
+        tableName: The name of the table to delete
         """
 
         query = "DROP TABLE " + tableName
@@ -188,15 +195,29 @@ class dataLink:
 
     def getColumns(self, table:str) -> list:
         return self.getLastRow(table).columns
-        
+
 
     def getLastRow(self, table:str) -> pd.DataFrame:
 
         query = "SELECT * FROM " + table + " WHERE date = (SELECT MAX(date) FROM " + table + ")"
         self.cursor.execute(query)
         out = self.cursor.fetchall()
-        temp_df = pd.DataFrame(out) 
+        temp_df = pd.DataFrame(out)
         field_names = [i[0] for i in self.cursor.description]
         temp_df.columns = field_names
         return temp_df
 
+    def getUniqueSymbols(self, table:str) -> list:
+        query = "SELECT symbol FROM " + table + " GROUP BY symbol"
+        self.cursor.execute(query)
+        out = self.cursor.fetchall()
+        columnList = list(pd.DataFrame(out).iloc[:,0])
+        return columnList
+
+    def getAggElement(self, table:str, column:str, aggFunc:str, conditional:dict):
+        query = "SELECT " + aggFunc + "(" + column + ")" + " FROM " + table
+        if len(conditional) > 0:
+            query += " WHERE " + conditional['column'] + " = " + "'" + conditional['value'] + "'"
+        self.cursor.execute(query)
+        out = self.cursor.fetchall()[0][0]
+        return out

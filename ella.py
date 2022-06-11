@@ -24,8 +24,6 @@ class ella:
         self.ion = ion()
         self.TimeRules = TimeRules()
 
-
-
     def runDataHub(self) -> None:
         datahub = dataHub()
         datahub.maintainData()
@@ -43,7 +41,6 @@ class ella:
                     weights_df.to_csv(self.credents.weightsFile, index = False)
 
                 except Exception as e:
-                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
                 time.sleep(600)
@@ -62,10 +59,7 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
                     weights_df = pd.read_csv(self.credents.weightsFile)
-                    try:
-                        DataLink.append(self.credents.weightsTable,weights_df)
-                    except:
-                        DataLink.createTable(self.credents.weightsTable,weights_df)
+                    DataLink.append(self.credents.weightsTable,weights_df)
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
@@ -87,7 +81,6 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     link.rebalance()
                 except Exception as e:
-                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
                 time.sleep(600)
@@ -102,7 +95,7 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     self.ReportingSuite.calcPerformance()
                 except Exception as e:
-                    print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+
                     print(traceback.print_exc())
             else:
 

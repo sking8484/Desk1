@@ -1,4 +1,5 @@
 from inspect import trace
+from optparse import Values
 from threading import Timer
 import traceback
 from turtle import towards
@@ -13,54 +14,60 @@ from datetime import timedelta
 import time
 import threading
 from timeRules import TimeRules
+from iexDefinitions import iexFactors
 
 class dataHub:
     def __init__(self):
         self.TimeRules = TimeRules()
         self.credents = credentials()
+        self.factors = iexFactors
         self.token = self.credents.iexToken
         self.iexLink = iexLink()
         self.mainStockTable = self.credents.mainStockTable
+        self.mainFactorTable = self.credents.mainFactorTable
 
-    def getBuyUniverse(self) -> list:
-        payload=pd.read_html('https://en.wikipedia.org/wiki/S%26P_100')
-        stock_table = payload[2]
-        universe = list(stock_table['Symbol'].values)
-        return universe
+    def getBuyUniverse(self, table) -> list:
+        if (table == self.mainStockTable):
+            payload = pd.read_html('https://en.wikipedia.org/wiki/S%26P_100')
+            stock_table = payload[2]
+            universe = list(stock_table['Symbol'].values)
+            return universe
+        elif (table == self.mainFactorTable):
+            return [identifier['symbol'] for identifier in self.factors]
 
-    def getCurrentUniverse(self) -> list:
+    def createTickerObject(self, ticker):
+        '''
+        {
+            "symbol":"CPI",
+            "timeSeriesUrlParam":"/economic/CPIAUCSL",
+            "frequency":"M",
+            "columnsToKeep":['date','value'],
+            "columnNames":['date','CPI']
+        }
+        '''
 
-        columns = self.dataLink.getLastRow(self.mainStockTable).columns
-        return [column for column in columns if column != "ID" and column != "date" and '.' not in column and '_' not in column]
+        return {
+            "symbol":ticker,
+            "timeSeriesUrlParam":"HISTORICAL_PRICES/" + ticker,
+            "frequency":"D",
+            "columnsToKeep":['date','close'],
+            "columnNames":['date',ticker],
+            'tableName':self.mainStockTable
+        }
 
-    def positionsToRemove(self) -> list:
+    def updateTimeSeriesData(self, table) -> None:
+        #self.removeNonBuyList(table)
+        self.buyUniverse = self.getBuyUniverse(table)
 
-        currUniverse = self.getCurrentUniverse()
-        buyUniverse = self.getBuyUniverse()
-        posToSell = list(set(currUniverse) - set(buyUniverse))
-        return posToSell + [stock for stock in currUniverse if '_' in stock and '.' in stock]
+        if (table == self.mainStockTable):
+            currIdentifiers = [self.createTickerObject(col) for col in self.buyUniverse]
 
-    def positionsToAdd(self) -> list:
-        return list(set(self.getBuyUniverse())- set(self.getCurrentUniverse()))
+        elif (table == self.mainFactorTable):
+            currIdentifiers = [identifier for identifier in self.factors if identifier['symbol'] in  self.buyUniverse]
 
-    def removeNonBuyList(self) -> None:
-        posToSell = self.positionsToRemove()
-        self.dataLink.dropColumns(self.mainStockTable,posToSell)
+        data = self.iexLink.getTimeSeriesData(currIdentifiers)
+        self.dataLink.append(table, data)
 
-    def updateStockData(self) -> None:
-        self.removeNonBuyList()
-        self.currCols, currCols = [col.replace("_",".") for col in self.dataLink.getColumns(self.mainStockTable)  if col != "ID" and col != "date"]
-
-        fromDate = (pd.to_datetime(self.dataLink.getLastRow(self.mainStockTable)['date'][0]) + BusinessDay()).strftime("%Y-%m-%d")
-        print(fromDate)
-        data = self.iexLink.getStockData(currCols,fromDate)
-        self.dataLink.append(self.mainStockTable,data)
-
-        colsToAdd = self.positionsToAdd()
-
-        if len(colsToAdd) > 0:
-            data = self.iexLink.getStockData(colsToAdd, "20050101")
-            self.dataLink.joinTables("date",self.mainStockTable,data)
 
     def maintainUniverse(self) -> None:
         lastUpdate = ""
@@ -70,10 +77,8 @@ class dataHub:
                 self.dataLink = dataLink(self.credents.credentials)
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 try:
-                    self.updateStockData()
-
+                    self.updateTimeSeriesData(self.mainStockTable)
                 except Exception as e:
-                    print("Update Stock Data threw an exception at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
 
                 data = self.dataLink.returnTable(self.mainStockTable)
@@ -87,26 +92,36 @@ class dataHub:
 
         while True:
             if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainTopDownData']):
-
+                lastUpdate = date.today().strftime("%Y-%m-%d")
                 self.dataLink = dataLink(self.credents.credentials)
-                topDownData = self.iexLink.countrySectorInfo(self.getCurrentUniverse())
+                topDownData = self.iexLink.countrySectorInfo(self.getCurrentUniverse(self.mainStockTable))
+
                 try:
                     self.dataLink.append(self.credents.stockInfoTable, topDownData)
                 except Exception as e:
                     print(traceback.print_exc())
-                    print("Trying to create table")
-                    try:
-                        self.dataLink.createTable(self.credents.stockInfoTable, topDownData)
-                    except Exception as e:
-                        print(traceback.print_exc())
             else:
                 time.sleep(600)
 
+    def maintainFactors(self) -> None:
+        lastUpdate = ""
+
+        while True:
+            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainFactors']):
+                lastUpdate = date.today().strftime("%Y-%m-%d")
+                self.dataLink = dataLink(self.credents.credentials)
+                try:
+                    self.updateTimeSeriesData(self.mainFactorTable)
+                except Exception as e:
+                    print(traceback.print_exc())
+            else:
+                time.sleep(600)
 
 
     def maintainData(self) -> None:
         t1 = threading.Thread(target = self.maintainUniverse).start()
         t2 = threading.Thread(target = self.maintainTopDownData).start()
+        t3 = threading.Thread(target = self.maintainFactors).start()
 
 
 
