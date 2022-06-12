@@ -82,7 +82,7 @@ class dataHub:
                     print(traceback.print_exc())
 
                 data = self.dataLink.returnTable(self.mainStockTable)
-                data.to_csv(self.credents.stockPriceFile,index=False)
+                data.to_csv('../' + self.credents.stockPriceFile,index=False)
             else:
                 time.sleep(self.credents.sleepSeconds)
 
@@ -100,6 +100,7 @@ class dataHub:
                     self.dataLink.append(self.credents.stockInfoTable, topDownData)
                 except Exception as e:
                     print(traceback.print_exc())
+                self.dataLink.closeConnection()
             else:
                 time.sleep(self.credents.sleepSeconds)
 
@@ -114,6 +115,7 @@ class dataHub:
                     self.updateTimeSeriesData(self.mainFactorTable)
                 except Exception as e:
                     print(traceback.print_exc())
+                self.dataLink.closeConnection()
             else:
                 time.sleep(self.credents.sleepSeconds)
 

@@ -2,7 +2,7 @@
 # Pulling private data from gitignore file
 from pickle import FALSE
 from posixpath import split
-import sys 
+import sys
 from privateKeys.privateData import credentials
 import pandas as pd
 import requests
@@ -27,6 +27,8 @@ print(db['dateVal'].values)
 credents = credentials()
 
 testData = pd.read_csv(credents.stockDataPath, index_col = 0)
+
+testData = pd.melt(testData, id_vars=['date'], value_vars=[col for col in testData.columns if col != 'date'], var_name='symbol')
 
 connection = dataLink(credents.credentials)
 connection.createTable(credents.mainStockTable,testData)

@@ -65,6 +65,7 @@ class ella:
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
+
             else:
                 time.sleep(self.credents.sleepSeconds)
 

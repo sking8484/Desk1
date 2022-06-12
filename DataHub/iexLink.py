@@ -76,6 +76,7 @@ class iexLink:
             else:
                 historicalData = pd.concat([historicalData,timeSeriesData])
 
+        self.dataLink.closeConnection()
         return historicalData
 
     def countrySectorInfo(self, tickers: list) -> pd.DataFrame:
@@ -100,6 +101,7 @@ class iexLink:
                 historicalData = pd.concat([historicalData,stockData], ignore_index=True)
 
         historicalData['date'] = datetime.today().strftime('%Y-%m-%d')
+        self.dataLink.closeConnection()
 
         return historicalData
 

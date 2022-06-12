@@ -14,7 +14,6 @@ class dataLink:
         """
         self.cnxn = sqlconnection.connect(**credentials)
         self.cursor = self.cnxn.cursor()
-        print("Link Established")
 
     def createTable(self, tableName: str, dataFrame: pd.DataFrame, addAutoIncrementCol = True) -> None:
 
@@ -230,3 +229,6 @@ class dataLink:
         self.cursor.execute(query)
         out = self.cursor.fetchall()[0][0]
         return out
+
+    def closeConnection(self):
+        self.cnxn.close()
