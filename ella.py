@@ -99,11 +99,8 @@ class ella:
 
                     print(traceback.print_exc())
             else:
-                print(self.credents.sleepSeconds)
+
                 time.sleep(self.credents.sleepSeconds)
-
-
-
 controller = ella()
 
 optimization = input("If this it the optimization file, please enter -opt: ")
