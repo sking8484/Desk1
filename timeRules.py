@@ -16,20 +16,20 @@ class TimeRules:
         self.timeRules = {
             "dataHub":
                 {"maintainUniverse":
-                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]},
+                    {"start_time":[4+7,0,0],"end_time":[4+7,5,0], "day":[]},
                 "maintainTopDownData":
-                    {"start_time":[4,0,0],"end_time":[4,15,0], "day":[]},
+                    {"start_time":[1,0,0],"end_time":[1,30,0], "day":[0]},
                 "maintainFactors":
-                    {"start_time":[0,0,0],"end_time":[23,30,0], "day":[]}
+                    {"start_time":[4+7,10,0],"end_time":[4+7,15,0], "day":[]}
                 },
             "performanceCalc":
-                {"start_time":[4,20,0],"end_time":[4,35,0], "day":[]},
+                {"start_time":[4+7,20,0],"end_time":[4+7,25,0], "day":[]},
             "optimize":
-                {"start_time":[4,40,0],"end_time":[4,55,0], "day":[]},
+                {"start_time":[4+7,30,0],"end_time":[4+7,35,0], "day":[]},
             "updateWeights":
-                {'start_time':[5,0,0],'end_time':[5,15,0], "day":[]},
+                {'start_time':[4+7,40,0],'end_time':[4+7,45,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]}
+                {"start_time":[6+6,30,0],"end_time":[6+6,50,0], "day":[]}
             }
 
     def getTiming(self,lastUpdate:str, callingFunction:'list[str]') -> bool:
@@ -49,7 +49,7 @@ class TimeRules:
         startTime = dt.time(start[0],start[1],start[2])
         endTime = dt.time(end[0], end[1], end[2])
 
-        if startTime <= currTime <= endTime and lastUpdate != currDay and (len(day) == 0 or dayOfWeek in day):
+        if startTime <= currTime <= endTime and lastUpdate != currDay and ((len(day) == 0) or (dayOfWeek in day)):
             print("Running " + str(callingFunction))
             return True
         else:

@@ -36,14 +36,15 @@ class ella:
             if self.TimeRules.getTiming(lastUpdate, ['optimize']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
-                    data = pd.read_csv(self.credents.stockPriceFile)
-                    weights_df = self.ion.getOptimalWeights(data, delta = 75)
+                    data = pd.read_csv(self.credents.stockPriceFile).pivot(index = 'date', columns = 'symbol', values = 'value').reset_index()
+                    print(data)
+                    weights_df = self.ion.getOptimalWeights(data, delta = 68)
                     weights_df.to_csv(self.credents.weightsFile, index = False)
 
                 except Exception as e:
                     print(traceback.print_exc())
             else:
-                time.sleep(600)
+                time.sleep(self.credents.sleepSeconds)
 
     def updateWeights(self) -> None:
         lastUpdate = ""
@@ -65,7 +66,7 @@ class ella:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
                     print(traceback.print_exc())
             else:
-                time.sleep(600)
+                time.sleep(self.credents.sleepSeconds)
 
     def rebalance(self) -> None:
         lastUpdate = ""
@@ -83,8 +84,7 @@ class ella:
                 except Exception as e:
                     print(traceback.print_exc())
             else:
-                time.sleep(600)
-
+                time.sleep(self.credents.sleepSeconds)
 
     def performanceCalc(self):
         self.ReportingSuite = reportingSuite()
@@ -98,8 +98,8 @@ class ella:
 
                     print(traceback.print_exc())
             else:
-
-                time.sleep(600)
+                print(self.credents.sleepSeconds)
+                time.sleep(self.credents.sleepSeconds)
 
 
 

@@ -36,7 +36,7 @@ class alpacaLink:
         ordersToSubmit = ordersToSubmit[ordersToSubmit['date'] == max(ordersToSubmit['date'])]
         ordersToSubmit = json.loads(ordersToSubmit.to_json(orient='records'))
 
-        self.positionsToTrade = [pos['Ticker'].upper() for pos in ordersToSubmit]
+        self.positionsToTrade = [pos['symbol'].upper() for pos in ordersToSubmit]
         self.openPositionsList = [pos.symbol for pos in self.openPositions]
         self.finalOrders = []
         self.sellNonUniverse()
@@ -50,18 +50,19 @@ class alpacaLink:
                 self.finalOrders.append({'position':pos.symbol,'orderType':'LIQ'})
 
     def createTrades(self, currOrder):
-        if round(float(currOrder['weights']),2) == 0:
+        if round(float(currOrder['value']),2) == 0:
             currOrder['orderType']="LIQ"
         else:
-            currOrder['marketVal'] = round((self.buying_power)*float(currOrder['weights']),2)
+            currOrder['marketVal'] = round((self.buying_power)*float(currOrder['value']),2)
             currOrder['orderType']='TRADE'
-            if currOrder['Ticker'].upper() in self.openPositionsList:
-                currOrder['marketVal'] -= float(self.alpaca.get_position(currOrder['Ticker'].upper()).market_value)
-        currOrder['Ticker'] = currOrder['Ticker'].upper()
+            if currOrder['symbol'].upper() in self.openPositionsList:
+                currOrder['marketVal'] -= float(self.alpaca.get_position(currOrder['symbol'].upper()).market_value)
+        currOrder['symbol'] = currOrder['symbol'].upper()
         return currOrder
 
     def placeTrades(self, finalOrders):
         for order in finalOrders:
+            print(order)
             time.sleep(0.5)
             if (order['orderType'] == 'LIQ'):
                 try:

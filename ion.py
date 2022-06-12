@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy import transpose as t
 
-import datetime   
+import datetime
 import math
 
 """
@@ -22,12 +22,12 @@ class ion:
 
         Methods
         -------
-        getGerberMatrix: Returns Pandas DataFrame of the gerber statistic 
-            (gerberMatrix) 
+        getGerberMatrix: Returns Pandas DataFrame of the gerber statistic
+            (gerberMatrix)
             dimensions M x M
 
         """
-    
+
     def getGerberMatrix(self, data:pd.DataFrame, Q:Optional[float]=.5) -> pd.DataFrame:
         """
         A method to return the Gerber (modified COV) matrix using data
@@ -38,34 +38,34 @@ class ion:
         data: A numerical Pandas DataFrame (excludes dates, ID or anything of that variety)
             Data must be a percentage change dataframe.
             DO NOT INCLUDE DATE COLUMN
-            
-        Q: a fraction from (0,1] 
-            Indicating how many standard deviations 
+
+        Q: a fraction from (0,1]
+            Indicating how many standard deviations
                 We want to start counting comovements
         """
-        
 
-        
+
+
         data = data.copy()
-                                                  
+
         T = len(data)
         diag = np.diag(np.asarray(data.std()))
-        
-        upperLimit = Q*data.std()         
-        lowerLimit = -1*Q*data.std()         
 
-        upperMatrix = data - upperLimit                 
-        lowerMatrix = data - lowerLimit  
+        upperLimit = Q*data.std()
+        lowerLimit = -1*Q*data.std()
+
+        upperMatrix = data - upperLimit
+        lowerMatrix = data - lowerLimit
 
         upperMatrix = np.asmatrix(upperMatrix)
-        lowerMatrix = np.asmatrix(lowerMatrix)               
+        lowerMatrix = np.asmatrix(lowerMatrix)
 
-        upperMatrix[upperMatrix >= 0] = 1               
-        upperMatrix[upperMatrix < 0] = 0                
+        upperMatrix[upperMatrix >= 0] = 1
+        upperMatrix[upperMatrix < 0] = 0
 
-        lowerMatrix[lowerMatrix <= 0] = -1              
-        lowerMatrix[lowerMatrix > 0] = 0                
-        lowerMatrix[lowerMatrix == -1] = 1              
+        lowerMatrix[lowerMatrix <= 0] = -1
+        lowerMatrix[lowerMatrix > 0] = 0
+        lowerMatrix[lowerMatrix == -1] = 1
 
         """
         General idea of mid matrix is that if both
@@ -76,22 +76,22 @@ class ion:
         """
 
         midMatrix = upperMatrix + lowerMatrix
-        midMatrix = midMatrix + 1           
-        midMatrix[midMatrix == 2] = 0                   
+        midMatrix = midMatrix + 1
+        midMatrix[midMatrix == 2] = 0
 
-        N_UU = t(upperMatrix) @ upperMatrix 
+        N_UU = t(upperMatrix) @ upperMatrix
         N_DD = t(lowerMatrix) @ lowerMatrix
         N_NN = t(midMatrix) @ midMatrix
         N_UD = t(upperMatrix) @ lowerMatrix
         N_DU = t(lowerMatrix) @ upperMatrix
-        
+
         denom_mat = np.copy(N_NN)
-        denom_mat[denom_mat > -100000] = T 
-        denom_mat = denom_mat - N_NN              
-        num_mat = N_UU + N_DD - N_UD - N_DU 
+        denom_mat[denom_mat > -100000] = T
+        denom_mat = denom_mat - N_NN
+        num_mat = N_UU + N_DD - N_UD - N_DU
 
         g = np.divide(num_mat, denom_mat)
-        G = diag @ g @ diag  
+        G = diag @ g @ diag
 
         return pd.DataFrame(G, index = data.columns, columns = data.columns)
 
@@ -104,7 +104,7 @@ class ion:
         We are using CVXOPT. The exmaple we are following can be found here
             https://cvxopt.org/examples/book/portfolio.html
 
-        Method to find optimal weights with the equation 
+        Method to find optimal weights with the equation
 
         Parameters:
             data: Time series of stock prices WITH DATE COLUMN
@@ -120,12 +120,12 @@ class ion:
         data = data.astype(float)
         data.replace(to_replace=0,method='ffill', inplace=True)
         cleaned_data = data.pct_change().dropna()
-        
+
         N = len(cleaned_data.columns)
 
         comovement = matrix(self.getGerberMatrix(cleaned_data).values)
         returns = matrix(np.reshape(cleaned_data.mean().values,(N,1)))
-        
+
         G = matrix(0.0,(N,N))
         G[::N+1] = -1.0
         h = matrix(0.0,(N,1))
@@ -135,17 +135,19 @@ class ion:
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
         weights = np.floor(weights*1000)/1000
 
-        weights = pd.DataFrame(weights, columns = ['weights'])
+        weights = pd.DataFrame(weights, columns = ['value'])
         weights['date'] = datetime.datetime.today().strftime("%Y-%m-%d")
-        weights['Ticker'] = cleaned_data.columns
+        weights['symbol'] = cleaned_data.columns
+
+        weights = weights[['date', 'symbol', 'value']]
         return weights
-    
 
 
 
 
 
-    
+
+
 
 
 

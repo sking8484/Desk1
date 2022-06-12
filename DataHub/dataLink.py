@@ -51,7 +51,7 @@ class dataLink:
         self.append(tableName,dataFrame)
         self.commit()
 
-    def returnTable(self, tableName: str) -> pd.DataFrame:
+    def returnTable(self, tableName: str, pivotObj:dict = None) -> pd.DataFrame:
 
         query = "SELECT * FROM " + tableName
         self.cursor.execute(query)
@@ -59,7 +59,11 @@ class dataLink:
         db = pd.DataFrame(out)
         field_names = [i[0] for i in self.cursor.description]
         db.columns = field_names
-        return db
+
+        if pivotObj != None:
+            return db.pivot(index = pivotObj['index'], columns = pivotObj['columns'], values = pivotObj['values']).reset_index()
+        else:
+            return db
 
     def append(self, tableName: str, dataFrame: pd.DataFrame) -> None:
         try:
@@ -215,6 +219,11 @@ class dataLink:
         return columnList
 
     def getAggElement(self, table:str, column:str, aggFunc:str, conditional:dict):
+        '''
+        conditional = {"column":column,
+                       "value":value}
+        '''
+
         query = "SELECT " + aggFunc + "(" + column + ")" + " FROM " + table
         if len(conditional) > 0:
             query += " WHERE " + conditional['column'] + " = " + "'" + conditional['value'] + "'"

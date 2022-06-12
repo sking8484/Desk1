@@ -7,7 +7,7 @@ iexFactors = [
     "timeSeriesUrlParam":"/energy/DCOILWTICO",
     'frequency':'W',
     'columnsToKeep':['date', 'value'],
-    'columnNames':['date', 'oilWTI'],
+    'columnNames':['date', 'value'],
     'tableName':credents.mainFactorTable
   },
   {
@@ -15,7 +15,7 @@ iexFactors = [
     "timeSeriesUrlParam":"/economic/CPIAUCSL",
     "frequency":"M",
     "columnsToKeep":['date','value'],
-    "columnNames":['date','CPI'],
+    "columnNames":['date','value'],
     'tableName':credents.mainFactorTable
   },
   {
@@ -23,7 +23,7 @@ iexFactors = [
     "timeSeriesUrlParam":"/economic/FEDFUNDS",
     "frequency":"M",
     "columnsToKeep":['date','value'],
-    "columnNames":['date','FedFunds'],
+    "columnNames":['date','value'],
     'tableName':credents.mainFactorTable
   },
 

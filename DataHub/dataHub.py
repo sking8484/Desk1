@@ -51,7 +51,7 @@ class dataHub:
             "timeSeriesUrlParam":"HISTORICAL_PRICES/" + ticker,
             "frequency":"D",
             "columnsToKeep":['date','close'],
-            "columnNames":['date',ticker],
+            "columnNames":['date','value'],
             'tableName':self.mainStockTable
         }
 
@@ -84,7 +84,7 @@ class dataHub:
                 data = self.dataLink.returnTable(self.mainStockTable)
                 data.to_csv(self.credents.stockPriceFile,index=False)
             else:
-                time.sleep(600)
+                time.sleep(self.credents.sleepSeconds)
 
     def maintainTopDownData(self) -> None:
 
@@ -94,14 +94,14 @@ class dataHub:
             if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainTopDownData']):
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 self.dataLink = dataLink(self.credents.credentials)
-                topDownData = self.iexLink.countrySectorInfo(self.getCurrentUniverse(self.mainStockTable))
+                topDownData = self.iexLink.countrySectorInfo(self.getBuyUniverse(self.mainStockTable))
 
                 try:
                     self.dataLink.append(self.credents.stockInfoTable, topDownData)
                 except Exception as e:
                     print(traceback.print_exc())
             else:
-                time.sleep(600)
+                time.sleep(self.credents.sleepSeconds)
 
     def maintainFactors(self) -> None:
         lastUpdate = ""
@@ -115,7 +115,7 @@ class dataHub:
                 except Exception as e:
                     print(traceback.print_exc())
             else:
-                time.sleep(600)
+                time.sleep(self.credents.sleepSeconds)
 
 
     def maintainData(self) -> None:
