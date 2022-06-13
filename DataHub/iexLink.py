@@ -93,7 +93,6 @@ class iexLink:
                                                                                          value_vars=['sector', 'industry', 'country'],
                                                                                          var_name='descriptor',
                                                                                          value_name='value')
-
             if firstJoin == True:
                 historicalData = stockData
                 firstJoin = False

@@ -47,7 +47,7 @@ class alpacaLink:
     def sellNonUniverse(self):
         for pos in self.openPositions:
             if not pos.symbol in self.positionsToTrade:
-                self.finalOrders.append({'position':pos.symbol,'orderType':'LIQ'})
+                self.finalOrders.append({'symbol':pos.symbol,'orderType':'LIQ'})
 
     def createTrades(self, currOrder):
         if round(float(currOrder['value']),2) == 0:

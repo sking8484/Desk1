@@ -82,7 +82,7 @@ class dataHub:
                     print(traceback.print_exc())
 
                 data = self.dataLink.returnTable(self.mainStockTable)
-                data.to_csv('../' + self.credents.stockPriceFile,index=False)
+                data.to_csv(self.credents.stockPriceFile,index=False)
             else:
                 time.sleep(self.credents.sleepSeconds)
 
