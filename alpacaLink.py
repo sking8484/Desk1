@@ -66,7 +66,7 @@ class alpacaLink:
             time.sleep(0.5)
             if (order['orderType'] == 'LIQ'):
                 try:
-                    self.alpaca.close_position(order['position'])
+                    self.alpaca.close_position(order['symbol'])
                 except:
                     pass
             else:
@@ -76,7 +76,7 @@ class alpacaLink:
                     side = 'sell'
                 try:
                     self.alpaca.submit_order(
-                    symbol = order['Ticker'],
+                    symbol = order['symbol'],
                     notional = abs(order['marketVal']),
                         side = side,
                         type = 'market',
