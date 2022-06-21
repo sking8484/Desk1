@@ -26,10 +26,13 @@ class reportingSuite:
 
         modelWeightsAsOf = modelWeights[modelWeights['date'] == optimizationWeightsAsOf]
 
-        priceChanges = stockData.drop(columns = 'date').astype(float).replace(to_replace=0,method='ffill').pct_change().iloc[-1,:]
+        priceChanges = stockData.drop(columns = 'date').astype(float).replace(to_replace=0,method='ffill').pct_change().iloc[-1,:].reset_index().drop(columns = 'level_0')
+        priceChanges.columns = ['symbol', 'value']
+
         pct_change = 0
         for ticker in modelWeightsAsOf['symbol']:
-            pct_change += modelWeightsAsOf[modelWeightsAsOf['symbol'] == ticker]['value'].astype(float).values[0] * priceChanges[ticker]
+
+            pct_change += modelWeightsAsOf[modelWeightsAsOf['symbol'] == ticker]['value'].astype(float).values[0] * priceChanges[priceChanges['symbol'] == ticker]['value'].values[0]
 
         data = {"date":[recentDate.strftime("%Y-%m-%d")],'symbol':'pct_change', "value":[pct_change]}
         data = pd.DataFrame.from_dict(data)
