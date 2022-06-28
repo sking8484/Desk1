@@ -87,20 +87,10 @@ class ella:
             else:
                 time.sleep(self.credents.sleepSeconds)
 
-    def performanceCalc(self):
+    def runReportingSuite(self):
         self.ReportingSuite = reportingSuite()
-        lastUpdate = ""
-        while True:
-            if self.TimeRules.getTiming(lastUpdate, ['performanceCalc']):
-                try:
-                    lastUpdate = date.today().strftime("%Y-%m-%d")
-                    self.ReportingSuite.calcPerformance()
-                except Exception as e:
+        self.ReportingSuite.maintainData()
 
-                    print(traceback.print_exc())
-            else:
-
-                time.sleep(self.credents.sleepSeconds)
 controller = ella()
 
 optimization = input("If this it the optimization file, please enter -opt: ")
@@ -116,7 +106,7 @@ else:
     controller.reportingSuite = reportingSuite()
     t1 = threading.Thread(target = controller.runDataHub).start()
     t2 = threading.Thread(target = controller.rebalance).start()
-    t4 = threading.Thread(target = controller.performanceCalc).start()
+    t4 = threading.Thread(target = controller.runReportingSuite).start()
     t5 = threading.Thread(target = controller.updateWeights).start()
 
 
