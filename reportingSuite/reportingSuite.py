@@ -49,6 +49,14 @@ class reportingSuite:
             print(traceback.print_exc())
             DataLink.append(self.credents.perfTable,data)
 
+    def createCountrySectorWeights(self):
+        DataLink = dataLink(self.credents.credentials)
+        weightsTable = DataLink.returnTable(self.credents.weightsTable)
+        csInfoTable = DataLink.returnTable(self.credents.stockInfoTable)
+
+
+
+
 
 
 

@@ -63,12 +63,12 @@ class alpacaLink:
     def placeTrades(self, finalOrders):
         for order in finalOrders:
             print(order)
-            time.sleep(0.5)
+            time.sleep(1)
             if (order['orderType'] == 'LIQ'):
                 try:
                     self.alpaca.close_position(order['symbol'])
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
             else:
                 if order['marketVal'] > 0:
                     side = 'buy'
@@ -82,8 +82,8 @@ class alpacaLink:
                         type = 'market',
                         time_in_force='day'
                     )
-                except:
-                    pass
+                except Exception as e:
+                    print (e)
 
 
 

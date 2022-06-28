@@ -88,17 +88,16 @@ class iexLink:
             base_url = self.BaseUrl + self.version + myParams +"&token=" + self.token
 
             data = requests.get(base_url)
-            print(data.json())
             stockData = pd.melt(pd.DataFrame.from_dict([data.json()], orient="columns"), id_vars=['symbol'],
                                                                                          value_vars=['sector', 'industry', 'country'],
                                                                                          var_name='descriptor',
                                                                                          value_name='value')
+
             if firstJoin == True:
                 historicalData = stockData
                 firstJoin = False
             else:
                 historicalData = pd.concat([historicalData,stockData], ignore_index=True)
-
         historicalData['date'] = datetime.today().strftime('%Y-%m-%d')
         self.dataLink.closeConnection()
 
