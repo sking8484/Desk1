@@ -19,7 +19,7 @@ class reportingSuite:
     def calcPerformance(self):
         lastUpdate = ''
         while True:
-            if self.TimeRules(lastUpdate, ['reportingSuite','calcPerformance']):
+            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite','calcPerformance']):
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 DataLink = dataLink(self.credents.credentials)
                 stockData = DataLink.returnTable(self.credents.mainStockTable, pivotObj={'index':'date', 'columns':['symbol'], 'values':['value']})
@@ -61,11 +61,21 @@ class reportingSuite:
     def createCountrySectorWeights(self):
         lastUpdate = ""
         while True:
-            if self.TimeRules(lastUpdate, ['reportingSuite','createCountrySectorWeights']):
+            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite','createCountrySectorWeights']):
+                lastUpdate = date.today().strftime("%Y-%m-%d")
                 DataLink = dataLink(self.credents.credentials)
-                weightsTable = DataLink.returnTable(self.credents.weightsTable)
+                weightsTable = DataLink.returnTable(self.credents.weightsTable).rename(columns = {'value':'weight'})
                 csInfoTable = DataLink.returnTable(self.credents.stockInfoTable)
-                print(weightsTable)
+                maxWeightsDate = max(weightsTable['date'])
+                maxCSInfoDate = max(csInfoTable['date'])
+
+                currWeights = weightsTable[weightsTable['date'] == maxWeightsDate]
+
+                currCSInfo = csInfoTable[csInfoTable['date'] == maxCSInfoDate].pivot(index = 'symbol', columns = 'descriptor', values = 'value').reset_index()
+
+                csWeights = pd.melt(currWeights.merge(currCSInfo, on='symbol'), id_vars = 'symbol', value_vars = ['weight','country','industry','sector'])
+                csWeights['date'] = lastUpdate
+                DataLink.append(self.credents.topDownWeights, csWeights)
             else:
                 time.sleep(self.credents.sleepSeconds)
 

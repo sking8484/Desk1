@@ -18,13 +18,13 @@ class TimeRules:
                 {"maintainUniverse":
                     {"start_time":[4,0,0],"end_time":[4,5,0], "day":[]},
                 "maintainTopDownData":
-                    {"start_time":[1,0,0],"end_time":[23,30,0], "day":[]},
+                    {"start_time":[1,0,0],"end_time":[1,30,0], "day":[0]},
                 "maintainFactors":
                     {"start_time":[4,10,0],"end_time":[4,15,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
-                    {"start_time":[7,0,0],"end_time":[7,10,0],"day":[]},
+                    {"start_time":[7,0,0],"end_time":[23,10,0],"day":[]},
                 "calcPerformance":
                     {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
                 },
