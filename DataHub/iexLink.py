@@ -34,7 +34,7 @@ class iexLink:
             date = '2005-01-01'
         if date == None:
             return '2005-01-01'
-        fromDate = (pd.to_datetime(date) + BusinessDay()).strftime("%Y-%m-%d")
+        fromDate = (pd.to_datetime(date)).strftime("%Y-%m-%d")
         return fromDate
 
     def getTimeSeriesData(self, identifiers: 'list[dict]') -> pd.DataFrame:
@@ -69,6 +69,7 @@ class iexLink:
             timeSeriesData = timeSeriesData.resample('B').ffill()
             timeSeriesData.reset_index(inplace=True)
             timeSeriesData['date'] = timeSeriesData['date'].dt.strftime("%Y-%m-%d")
+            timeSeriesData = timeSeriesData.iloc[1:,:]
 
             if firstJoin == True:
                 historicalData = timeSeriesData
