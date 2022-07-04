@@ -45,7 +45,7 @@ class iexLink:
             "timeSeriesUrlParam":"/economic/CPIAUCSL",
             "frequency":"M",
             "columnsToKeep":['date','value'],
-            "columnNames":['date','CPI']
+            "columnNames":['date','value']
         }
         '''
         historicalData = ""
@@ -69,7 +69,9 @@ class iexLink:
             timeSeriesData = timeSeriesData.resample('B').ffill()
             timeSeriesData.reset_index(inplace=True)
             timeSeriesData['date'] = timeSeriesData['date'].dt.strftime("%Y-%m-%d")
+
             timeSeriesData = timeSeriesData.iloc[1:,:]
+
 
             if firstJoin == True:
                 historicalData = timeSeriesData

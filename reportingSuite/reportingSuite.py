@@ -71,9 +71,11 @@ class reportingSuite:
 
                 currWeights = weightsTable[weightsTable['date'] == maxWeightsDate]
 
-                currCSInfo = csInfoTable[csInfoTable['date'] == maxCSInfoDate].pivot(index = 'symbol', columns = 'descriptor', values = 'value').reset_index()
+                currCSInfo = csInfoTable[csInfoTable['date'] == maxCSInfoDate]
+                print(currWeights)
+                print(currCSInfo)
+                csWeights = currWeights.merge(currCSInfo, on='symbol')[['symbol','weight','descriptor','value']]
 
-                csWeights = pd.melt(currWeights.merge(currCSInfo, on='symbol'), id_vars = 'symbol', value_vars = ['weight','country','industry','sector'])
                 csWeights['date'] = lastUpdate
                 DataLink.append(self.credents.topDownWeights, csWeights)
             else:

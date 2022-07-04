@@ -18,7 +18,7 @@ class TimeRules:
                 {"maintainUniverse":
                     {"start_time":[4,0,0],"end_time":[4,5,0], "day":[]},
                 "maintainTopDownData":
-                    {"start_time":[1,0,0],"end_time":[1,30,0], "day":[0]},
+                    {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
                     {"start_time":[4,10,0],"end_time":[4,15,0], "day":[]}
                 },

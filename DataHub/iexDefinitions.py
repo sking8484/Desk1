@@ -26,5 +26,13 @@ iexFactors = [
     "columnNames":['date','value'],
     'tableName':credents.mainFactorTable
   },
+  {
+    "symbol":"OEF",
+    "timeSeriesUrlParam":"HISTORICAL_PRICES/OEF",
+    "frequency":"D",
+    "columnsToKeep":['date','close'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
 
 ]
