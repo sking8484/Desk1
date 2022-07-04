@@ -72,8 +72,7 @@ class reportingSuite:
                 currWeights = weightsTable[weightsTable['date'] == maxWeightsDate]
 
                 currCSInfo = csInfoTable[csInfoTable['date'] == maxCSInfoDate]
-                print(currWeights)
-                print(currCSInfo)
+
                 csWeights = currWeights.merge(currCSInfo, on='symbol')[['symbol','weight','descriptor','value']]
 
                 csWeights['date'] = lastUpdate

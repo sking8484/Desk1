@@ -24,7 +24,7 @@ class TimeRules:
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
-                    {"start_time":[7,0,0],"end_time":[23,10,0],"day":[]},
+                    {"start_time":[7,0,0],"end_time":[7,10,0],"day":[]},
                 "calcPerformance":
                     {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
                 },
