@@ -33,7 +33,7 @@ class TimeRules:
             "updateWeights":
                 {'start_time':[4,45,0],'end_time':[4,50,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]}
+                {"start_time":[6,30,0],"end_time":[23,50,0], "day":[]}
             }
 
     def getTiming(self,lastUpdate:str, callingFunction:'list[str]') -> bool:

@@ -5,14 +5,19 @@ import pandas as pd
 from DataHub.privateKeys.privateData import credentials
 from DataHub.dataLink import dataLink
 import json
+import threading
 
 
 class alpacaLink:
     def __init__(self):
         self.credents = credentials()
 
-    def initAlpaca(self):
-        self.alpaca = tradeapi.REST(self.credents.alpaca_pubkey,self.credents.alpaca_seckey,self.credents.alpaca_baseurl,'v2')
+    def initAlpaca(self, accountObj):
+        alpaca_pubkey = accountObj['alpaca_pubkey']
+        alpaca_seckey = accountObj['alpaca_seckey']
+        alpaca_baseurl = accountObj['alpaca_baseurl']
+
+        self.alpaca = tradeapi.REST(alpaca_pubkey,alpaca_seckey,alpaca_baseurl,'v2')
 
     def initDataLink(self):
         self.dataLink = dataLink(self.credents.credentials)
@@ -23,10 +28,12 @@ class alpacaLink:
 
     def getBuyingPower(self):
         account = self.alpaca.get_account()
+        print(account)
         self.buying_power = float(account.equity)
 
-    def rebalance(self):
-        self.initAlpaca()
+    def rebalance(self, accountObj):
+
+        self.initAlpaca(accountObj)
         self.getOpenPosCloseOpenOrders()
         self.initDataLink()
         self.getBuyingPower()
@@ -87,6 +94,8 @@ class alpacaLink:
 
 
 
-
-
-
+def threadRebalance():
+    alpacaCredents = credentials().alpaca_credents
+    for i in range(len(alpacaCredents)):
+        currAccount = alpacaCredents[i]
+        x = threading.Thread(target=alpacaLink().rebalance, args=(currAccount,)).start()

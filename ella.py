@@ -76,12 +76,12 @@ class ella:
         This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
         Most of this will be abstracted away.
         """
-        link = alpacaLink()
+
         while True:
             if self.TimeRules.getTiming(lastUpdate, ['rebalance']):
                 try:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
-                    link.rebalance()
+                    threadRebalance()
                 except Exception as e:
                     print(traceback.print_exc())
             else:
@@ -101,7 +101,7 @@ else:
     from DataHub.dataHub import dataHub
     from DataHub.dataLink import dataLink
     from reportingSuite.reportingSuite import reportingSuite
-    from alpacaLink import alpacaLink
+    from alpacaLink import threadRebalance
 
     controller.reportingSuite = reportingSuite()
     t1 = threading.Thread(target = controller.runDataHub).start()
