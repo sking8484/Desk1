@@ -63,8 +63,15 @@ class iexLink:
                 continue
 
             timeSeriesData['symbol'] = identifier['symbol']
-            timeSeriesData['date'] = pd.to_datetime(timeSeriesData['date'], unit = 'ms')
+            for i in range(len(timeSeriesData.index)):
+                try:
+                    #timeSeriesData['date'] = pd.to_datetime(timeSeriesData['date'], unit = 'ms')
+                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date'], unit = 'ms')
+                except Exception as e:
+                    #timeSeriesData['date'] = pd.to_datetime(timeSeriesData['date'])
+                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date'])
             timeSeriesData = timeSeriesData.sort_values(by = "date")
+            print(timeSeriesData)
             timeSeriesData.set_index('date', inplace=True)
             timeSeriesData = timeSeriesData.resample('B').ffill()
             timeSeriesData.reset_index(inplace=True)

@@ -28,7 +28,6 @@ class alpacaLink:
 
     def getBuyingPower(self):
         account = self.alpaca.get_account()
-        print(account)
         self.buying_power = float(account.equity)
 
     def rebalance(self, accountObj):

@@ -34,5 +34,21 @@ iexFactors = [
     "columnNames":['date','value'],
     'tableName':credents.mainFactorTable
   },
+  {
+    "symbol":"SPY",
+    "timeSeriesUrlParam":"HISTORICAL_PRICES/SPY",
+    "frequency":"D",
+    "columnsToKeep":['date','close'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
+    "symbol":"URTH",
+    "timeSeriesUrlParam":"HISTORICAL_PRICES/URTH",
+    "frequency":"D",
+    "columnsToKeep":['date','close'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
 
 ]

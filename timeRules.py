@@ -26,14 +26,14 @@ class TimeRules:
                 {"createCountrySectorWeights":
                     {"start_time":[7,0,0],"end_time":[7,10,0],"day":[]},
                 "calcPerformance":
-                    {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
+                    {"start_time":[4,20,0],"end_time":[23,25,0], "day":[]},
                 },
             "optimize":
                 {"start_time":[4,30,0],"end_time":[4,40,0], "day":[]},
             "updateWeights":
                 {'start_time':[4,45,0],'end_time':[4,50,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[23,50,0], "day":[]}
+                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]}
             }
 
     def getTiming(self,lastUpdate:str, callingFunction:'list[str]') -> bool:
