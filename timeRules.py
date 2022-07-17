@@ -20,7 +20,7 @@ class TimeRules:
                 "maintainTopDownData":
                     {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
-                    {"start_time":[4,10,0],"end_time":[4,15,0], "day":[]}
+                    {"start_time":[4,10,0],"end_time":[23,15,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":

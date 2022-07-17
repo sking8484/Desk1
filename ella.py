@@ -93,6 +93,11 @@ class ella:
 
 controller = ella()
 
+options = {'-opt':"Optimization",
+    '-hub':'Main Script',
+    '-net':"Neural Network"
+}
+
 optimization = input("If this it the optimization file, please enter -opt: ")
 if optimization == "-opt":
     t3 = threading.Thread(target = controller.optimize).start()
