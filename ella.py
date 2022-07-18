@@ -61,7 +61,9 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     DataLink = dataLink(self.credents.credentials)
                     weights_df = pd.read_csv(self.credents.weightsFile)
-                    DataLink.append(self.credents.weightsTable,weights_df)
+                    predictions_df = pd.read_csv(self.credents.networkPredictionsLocation)
+                    #DataLink.append(self.credents.weightsTable,weights_df)
+                    DataLink.append(self.credents.networkPredictionsTable, predictions_df)
 
                 except Exception as e:
                     print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))

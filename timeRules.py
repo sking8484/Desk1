@@ -20,27 +20,27 @@ class TimeRules:
                 "maintainTopDownData":
                     {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
-                    {"start_time":[4,10,0],"end_time":[4,15,0], "day":[]}
+                    {"start_time":[8,40,0],"end_time":[8,45,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
-                    {"start_time":[7,0,0],"end_time":[7,10,0],"day":[]},
+                    {"start_time":[9,40,0],"end_time":[9,50,0],"day":[]},
                 "calcPerformance":
                     {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
                 },
             "optimize":
-                {"start_time":[4,30,0],"end_time":[4,40,0], "day":[]},
+                {"start_time":[9,5,0],"end_time":[9,10,0], "day":[]},
             "updateWeights":
-                {'start_time':[4,45,0],'end_time':[4,50,0], "day":[]},
+                {'start_time':[9,11,0],'end_time':[23,16,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]},
+                {"start_time":[9,16,0],"end_time":[9,21,0], "day":[]},
             "deepLearning":
                 {'neuralNetworkPreperation':
-                    {"start_time":[1,0,0], "end_time":[23,0,0], "day":[]},
+                    {"start_time":[8,50,0], "end_time":[8,55,0], "day":[]},
                 'checkTrainStatus':
                     {"start_time":[1,0,0], "end_time":[1,30,0], 'day':[]},
                 'predict':
-                    {'start_time':[7,0,0], "end_time":[23,30,0], 'day':[]}
+                    {'start_time':[8,56,0], "end_time":[9,1,0], 'day':[]}
                 }
             }
 
