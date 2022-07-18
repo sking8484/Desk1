@@ -20,7 +20,7 @@ class TimeRules:
                 "maintainTopDownData":
                     {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
-                    {"start_time":[4,10,0],"end_time":[23,15,0], "day":[]}
+                    {"start_time":[4,10,0],"end_time":[4,15,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
@@ -33,7 +33,13 @@ class TimeRules:
             "updateWeights":
                 {'start_time':[4,45,0],'end_time':[4,50,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]}
+                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]},
+            "deepLearning":
+                {'neuralNetworkPreperation':
+                    {"start_time":[1,0,0], "end_time":[23,0,0], "day":[]},
+                'checkTrainStatus':
+                    {"start_time":[1,0,0], "end_time":[23,59,0], 'day':[]}
+                }
             }
 
     def getTiming(self,lastUpdate:str, callingFunction:'list[str]') -> bool:
