@@ -162,22 +162,26 @@ class orion:
         self.universeCols = []
         self.factorCols = []
         self.windowLength = 252
+        self.trained = False
 
 
     def updateData(self):
         self.prices = pd.read_csv(self.credents.networkPricesLocation)
         self.factors = pd.read_csv(self.credents.networkFactorsLocation)
         self.currUniverse = list(set(self.prices[self.prices['date'] == max(self.prices['date'])]['symbol']))
+        self.currUniverse.sort()
+
         self.currFactors = list(set(self.factors['symbol']))
         self.prices = self.prices[self.prices['symbol'].isin(self.currUniverse)]
         self.features = pd.concat([self.prices,self.factors], axis = 0).pivot(index='date',columns='symbol',values='value').fillna(method='ffill').fillna(value=0)
 
     def trainNetwork(self):
         print("Training network")
+        self.trained = True
         self.mlPipe = mlPipeline(features=self.features.copy(), currentUniverse=self.currUniverse, windowLength=self.windowLength)
 
 
-    def checkTrainStatus(self):
+    def checkTrainStatus(self, force = False):
         self.updateData()
 
         if (self.currUniverse != self.universeCols) or (self.currFactors != self.factorCols):
@@ -187,18 +191,29 @@ class orion:
 
         elif (date.today().weekday() == 6):
             self.trainNetwork()
+            self.universeCols = self.currUniverse
+            self.factorCols = self.currFactors
+        elif (force):
+            self.trainNetwork()
+            self.universeCols = self.currUniverse
+            self.factorCols = self.currFactors
         else:
             print("Does not need training")
 
     def controlNetwork(self):
 
-        lastUpdate = ''
+        lastUpdateTrain = ''
+        lastUpdatePredict = ''
         while True:
-            if self.TimeRules.getTiming(lastUpdate, ['deepLearning', 'checkTrainStatus']):
-                lastUpdate = date.today().strftime('%Y-%m-%d')
+            if self.TimeRules.getTiming(lastUpdateTrain, ['deepLearning', 'checkTrainStatus']):
+                lastUpdateTrain = date.today().strftime('%Y-%m-%d')
                 self.checkTrainStatus()
-                print(self.features)
-                self.mlPipe.predict(features=self.features.copy())
+            if self.TimeRules.getTiming(lastUpdatePredict, ['deepLearning','predict']):
+                lastUpdatePredict = date.today().strftime('%Y-%m-%d')
+                if not self.trained:
+                    self.checkTrainStatus(force=True)
+                predictions = self.mlPipe.predict(features=self.features.copy())
+                predictions.to_csv(self.credents.networkPredictionsLocation, index=False)
 
             else:
                 time.sleep(self.credents.sleepSeconds)
@@ -265,11 +280,11 @@ class mlPipeline():
 
         self.rnn_model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(32, return_sequences = True),
-            tf.keras.layers.LSTM(30),
+            tf.keras.layers.LSTM(15),
             tf.keras.layers.Dense(units = len(self.labels))
         ])
 
-        MAX_EPOCHS = 5
+        MAX_EPOCHS = 1
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor = 'val_loss',
                                                          patience = 20,
                                                          mode = 'min')
@@ -283,8 +298,8 @@ class mlPipeline():
         history = self.rnn_model.fit(self.window.train, epochs = MAX_EPOCHS,
                            validation_data = self.window.val,
                            callbacks =[early_stopping])
-        print(self.rnn_model(self.window.example[0]).shape)
-        self.window.plot(model=self.rnn_model, plot_col='AAPL_1')
+
+        #self.window.plot(model=self.rnn_model, plot_col='AAPL_1')
 
 
     def predict(self, features):
@@ -292,7 +307,7 @@ class mlPipeline():
         self.features = features
 
         self.engineerFeatures(usePrev=True)
-        print(self.features)
+
         self.features = (self.features - self.train_mean)/self.train_std
 
         data = tf.expand_dims(tf.constant(self.features[-self.windowLength:]), axis = 0)
@@ -300,7 +315,10 @@ class mlPipeline():
         preds = tf.squeeze(self.rnn_model((data))).numpy()
 
         dfObj = {self.labels[i].split('_')[0] : preds[i] for i in range(len(preds))}
-        print(dfObj)
+        predictions = pd.DataFrame.from_records([dfObj])
+        predictions['date'] = date.today().strftime('%Y-%m-%d')
+        predictions = pd.melt(predictions, id_vars=['date'], var_name='symbol')
+        return predictions
 
 
 

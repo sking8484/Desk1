@@ -38,7 +38,9 @@ class TimeRules:
                 {'neuralNetworkPreperation':
                     {"start_time":[1,0,0], "end_time":[23,0,0], "day":[]},
                 'checkTrainStatus':
-                    {"start_time":[1,0,0], "end_time":[23,59,0], 'day':[]}
+                    {"start_time":[1,0,0], "end_time":[1,30,0], 'day':[]},
+                'predict':
+                    {'start_time':[7,0,0], "end_time":[23,30,0], 'day':[]}
                 }
             }
 

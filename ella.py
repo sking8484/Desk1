@@ -4,9 +4,7 @@ from inspect import trace
 import os
 import sys
 import traceback
-from mysqlx import SelectStatement
 
-from soupsieve import select
 fpath = os.path.join(os.path.dirname(__file__),'DataHub')
 sys.path.append(fpath)
 
