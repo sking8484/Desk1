@@ -1,4 +1,5 @@
 
+from typing import Optional
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,6 +9,7 @@ import datetime
 from datetime import date
 import math
 from timeRules import TimeRules
+
 from DataHub.privateKeys.privateData import credentials
 import time
 
