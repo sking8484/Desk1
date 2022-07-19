@@ -39,7 +39,7 @@ class ella:
                     lastUpdate = date.today().strftime("%Y-%m-%d")
                     data = pd.read_csv(self.credents.stockPriceFile).pivot(index = 'date', columns = 'symbol', values = 'value').reset_index()
                     predictions = pd.read_csv(self.credents.networkPredictionsLocation)
-                    weights_df = self.ion.getOptimalWeights(data, delta = 135, leverageAmt=1.98, predictions=predictions, usePredictions=True)
+                    weights_df = self.ion.getOptimalWeights(data, delta = 135, leverageAmt=1, predictions=predictions, usePredictions=True)
                     weights_df.to_csv(self.credents.weightsFile, index = False)
 
                 except Exception as e:
