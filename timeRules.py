@@ -31,7 +31,7 @@ class TimeRules:
             "optimize":
                 {"start_time":[9,5,0],"end_time":[9,10,0], "day":[]},
             "updateWeights":
-                {'start_time':[9,11,0],'end_time':[23,16,0], "day":[]},
+                {'start_time':[9,11,0],'end_time':[9,16,0], "day":[]},
             "rebalance":
                 {"start_time":[9,16,0],"end_time":[9,21,0], "day":[]},
             "deepLearning":
