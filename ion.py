@@ -100,7 +100,7 @@ class ion:
 
         return pd.DataFrame(G, index = data.columns, columns = data.columns)
 
-    def getOptimalWeights(self,data:pd.DataFrame, delta:Optional[float] = 50, leverageAmt: Optional[float] = 1.0, gerber:Optional[bool] = True) -> pd.DataFrame:
+    def getOptimalWeights(self,data:pd.DataFrame, delta:Optional[float] = 50, leverageAmt: Optional[float] = 1.0, gerber:Optional[bool] = True, predictions: Optional[pd.DataFrame] = None, usePredictions: Optional[bool] = False) -> pd.DataFrame:
         """Imports here due to inability to solve enviornment errors"""
         from cvxopt import matrix
         from cvxopt.blas import dot
@@ -126,10 +126,18 @@ class ion:
         data.replace(to_replace=0,method='ffill', inplace=True)
         cleaned_data = data.pct_change().dropna()
 
-        N = len(cleaned_data.columns)
+        if usePredictions:
+            cleaned_data = cleaned_data[predictions['symbol']]
+            N = len(cleaned_data.columns)
+            returns = matrix(np.reshape(predictions['value'].values,(N,1)))
+        else:
+            N = len(cleaned_data.columns)
+            returns = matrix(np.reshape(cleaned_data.mean().values,(N,1)))
+
+
 
         comovement = matrix(self.getGerberMatrix(cleaned_data).values)
-        returns = matrix(np.reshape(cleaned_data.mean().values,(N,1)))
+        print(returns)
 
         G = matrix(0.0,(N,N))
         G[::N+1] = -1.0
