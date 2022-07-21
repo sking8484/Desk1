@@ -80,9 +80,24 @@ class reportingSuite:
             else:
                 time.sleep(self.credents.sleepSeconds)
 
+    def createCovMatrix(self):
+        lastUpdate = ''
+
+        while True:
+            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite', 'createCovMatrix']):
+                lastUpdate = date.today().strftime("%Y-%m-%d")
+                DataLink = dataLink(self.credents.credentials)
+                returnsTable = DataLink.returnTable(self.credents.mainStockTable)
+                returnsTable = returnsTable.pivot(index = 'date', columns = 'symbol', values = "value")
+                covs = returnsTable.iloc[-253:,:].astype(float).pct_change().iloc[-252:,:].cov().rename_axis(None).reset_index()
+                print(covs.melt(id_vars=['index'], ignore_index=True))
+            else:
+                time.sleep(self.credents.sleepSeconds)
+
     def maintainData(self) -> None:
         t1 = threading.Thread(target = self.calcPerformance).start()
         t2 = threading.Thread(target = self.createCountrySectorWeights).start()
+        t2 = threading.Thread(target = self.createCovMatrix).start()
 
 
 

@@ -27,6 +27,8 @@ class TimeRules:
                     {"start_time":[9,40,0],"end_time":[9,50,0],"day":[]},
                 "calcPerformance":
                     {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
+                "createCovMatrix":
+                    {"start_time":[0,0,1], "end_time":[1,0,0], "day":[0]}
                 },
             "optimize":
                 {"start_time":[9,5,0],"end_time":[9,10,0], "day":[]},
