@@ -43,6 +43,14 @@ iexFactors = [
     'tableName':credents.mainFactorTable
   },
   {
+    "symbol":"URTH",
+    "timeSeriesUrlParam":"HISTORICAL_PRICES/URTH",
+    "frequency":"D",
+    "columnsToKeep":['date','close'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
     "symbol":"3MTreas",
     "timeSeriesUrlParam":"treasury/DGS3MO",
     "frequency":"D",

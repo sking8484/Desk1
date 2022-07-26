@@ -1,4 +1,5 @@
 from inspect import trace
+from tkinter import E
 from DataHub.dataHub import dataHub
 from DataHub.dataLink import dataLink
 import pandas as pd
@@ -80,24 +81,63 @@ class reportingSuite:
             else:
                 time.sleep(self.credents.sleepSeconds)
 
-    def createCovMatrix(self):
+    def createVariances(self):
         lastUpdate = ''
 
         while True:
-            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite', 'createCovMatrix']):
+            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite', 'createVariances']):
                 lastUpdate = date.today().strftime("%Y-%m-%d")
                 DataLink = dataLink(self.credents.credentials)
-                returnsTable = DataLink.returnTable(self.credents.mainStockTable)
-                returnsTable = returnsTable.pivot(index = 'date', columns = 'symbol', values = "value")
-                covs = returnsTable.iloc[-253:,:].astype(float).pct_change().iloc[-252:,:].cov().rename_axis(None).reset_index()
-                print(covs.melt(id_vars=['index'], ignore_index=True))
+                currTable = DataLink.returnTable(self.credents.varianceTable)
+                if currTable['date'][0] == lastUpdate:
+                    print("Cov table already update")
+                else:
+                    returnsTable = DataLink.returnTable(self.credents.mainStockTable)
+                    returnsTable = returnsTable.pivot(index = 'date', columns = 'symbol', values = "value")
+                    covs = returnsTable.iloc[-253:,:].astype(float).pct_change().iloc[-252:,:].var().reset_index().rename(columns = {0:'value'})
+
+                    covs['date'] = lastUpdate
+                    print(covs)
+                    DataLink.append(self.credents.varianceTable, covs)
+
+            else:
+                time.sleep(self.credents.sleepSeconds)
+
+    def createCorrelations(self):
+        lastUpdate = ''
+
+        while True:
+            if self.TimeRules.getTiming(lastUpdate, ['reportingSuite', 'createCorrelations']):
+                lastUpdate = date.today().strftime("%Y-%m-%d")
+                DataLink = dataLink(self.credents.credentials)
+                currTable = DataLink.returnTable(self.credents.corrTable)
+                needsUpdate = True
+                try:
+                    if currTable['date'][0] == lastUpdate:
+                        print("Cov table already update")
+                        needsUpdate = False
+                    else:
+                        pass
+                except Exception as e:
+                    print(e)
+
+                if needsUpdate:
+                    returnsTable = DataLink.returnTable(self.credents.mainStockTable)
+                    returnsTable = returnsTable.pivot(index = 'date', columns = 'symbol', values = "value")
+                    corrs = returnsTable.iloc[-253:,:].astype(float).pct_change().iloc[-252:,:].corr().melt(ignore_index=False).rename(columns = {'symbol':'symbol2'}).reset_index()
+
+                    corrs['date'] = lastUpdate
+
+                    DataLink.append(self.credents.corrTable, corrs)
+
             else:
                 time.sleep(self.credents.sleepSeconds)
 
     def maintainData(self) -> None:
         t1 = threading.Thread(target = self.calcPerformance).start()
         t2 = threading.Thread(target = self.createCountrySectorWeights).start()
-        t2 = threading.Thread(target = self.createCovMatrix).start()
+        t3 = threading.Thread(target = self.createVariances).start()
+        t4 = threading.Thread(target = self.createCorrelations).start()
 
 
 
