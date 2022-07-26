@@ -11,6 +11,14 @@ iexFactors = [
     'tableName':credents.mainFactorTable
   },
   {
+    "symbol":"GAS",
+    "timeSeriesUrlParam":"/energy/GASREGCOVW",
+    'frequency':'W',
+    'columnsToKeep':['date', 'value'],
+    'columnNames':['date', 'value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
     "symbol":"CPI",
     "timeSeriesUrlParam":"/economic/CPIAUCSL",
     "frequency":"M",
@@ -69,6 +77,22 @@ iexFactors = [
   {
     "symbol":"IndProIndex",
     "timeSeriesUrlParam":"/economic/INDPRO",
+    "frequency":"M",
+    "columnsToKeep":['date','value'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
+    "symbol":"recessionIndicator",
+    "timeSeriesUrlParam":"/economic/RECPROUSM156N",
+    "frequency":"M",
+    "columnsToKeep":['date','value'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
+    "symbol":"GDP",
+    "timeSeriesUrlParam":"/economic/A191RL1Q225SBEA",
     "frequency":"M",
     "columnsToKeep":['date','value'],
     "columnNames":['date','value'],
