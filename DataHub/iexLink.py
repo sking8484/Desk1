@@ -50,10 +50,12 @@ class iexLink:
         '''
         historicalData = ""
         firstJoin = True
+        bd = pd.tseries.offsets.BusinessDay(n = 1)
         for identifier in identifiers:
             print(identifier)
             time.sleep(.1)
-            myParams = "time-series/" + identifier['timeSeriesUrlParam'] + "?from=" + self.getFromDate(identifier) + "&to=" + date.today().strftime("%Y%m%d")
+            fromDate = self.getFromDate(identifier)
+            myParams = "time-series/" + identifier['timeSeriesUrlParam'] + "?from=" + fromDate + "&to=" + date.today().strftime("%Y%m%d")
             requestUrl = self.BaseUrl + self.version + myParams +"&token="+ self.token
             data = requests.get(requestUrl)
             try:
@@ -66,18 +68,24 @@ class iexLink:
             for i in range(len(timeSeriesData.index)):
                 try:
                     #timeSeriesData['date'] = pd.to_datetime(timeSeriesData['date'], unit = 'ms')
-                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date'], unit = 'ms')
+                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = bd.rollforward(pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date'], unit = 'ms'))
                 except Exception as e:
                     #timeSeriesData['date'] = pd.to_datetime(timeSeriesData['date'])
-                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date'])
+                    timeSeriesData.loc[timeSeriesData.index[i], 'date'] = bd.rollforward(pd.to_datetime(timeSeriesData.loc[timeSeriesData.index[i], 'date']))
             timeSeriesData = timeSeriesData.sort_values(by = "date")
-            print(timeSeriesData)
+
+
             timeSeriesData.set_index('date', inplace=True)
+
             timeSeriesData = timeSeriesData.resample('B').ffill()
+
             timeSeriesData.reset_index(inplace=True)
+
             timeSeriesData['date'] = timeSeriesData['date'].dt.strftime("%Y-%m-%d")
 
-            timeSeriesData = timeSeriesData.iloc[1:,:]
+            if timeSeriesData['date'][0] == fromDate:
+                timeSeriesData = timeSeriesData.iloc[1:,:]
+            print(timeSeriesData)
 
 
             if firstJoin == True:

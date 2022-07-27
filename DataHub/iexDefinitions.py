@@ -3,6 +3,14 @@ from privateKeys.privateData import credentials
 credents = credentials()
 iexFactors = [
   {
+    "symbol":"GDP",
+    "timeSeriesUrlParam":"/economic/A191RL1Q225SBEA",
+    "frequency":"M",
+    "columnsToKeep":['date','value'],
+    "columnNames":['date','value'],
+    'tableName':credents.mainFactorTable
+  },
+  {
     "symbol":"oilWTI",
     "timeSeriesUrlParam":"/energy/DCOILWTICO",
     'frequency':'W',
@@ -85,14 +93,6 @@ iexFactors = [
   {
     "symbol":"recessionIndicator",
     "timeSeriesUrlParam":"/economic/RECPROUSM156N",
-    "frequency":"M",
-    "columnsToKeep":['date','value'],
-    "columnNames":['date','value'],
-    'tableName':credents.mainFactorTable
-  },
-  {
-    "symbol":"GDP",
-    "timeSeriesUrlParam":"/economic/A191RL1Q225SBEA",
     "frequency":"M",
     "columnsToKeep":['date','value'],
     "columnNames":['date','value'],
