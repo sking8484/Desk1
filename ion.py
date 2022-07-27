@@ -174,12 +174,14 @@ class orion:
     def updateData(self):
         self.prices = pd.read_csv(self.credents.networkPricesLocation)
         self.factors = pd.read_csv(self.credents.networkFactorsLocation)
+
         self.currUniverse = list(set(self.prices[self.prices['date'] == max(self.prices['date'])]['symbol']))
         self.currUniverse.sort()
 
         self.currFactors = list(set(self.factors['symbol']))
         self.prices = self.prices[self.prices['symbol'].isin(self.currUniverse)]
         self.features = pd.concat([self.prices,self.factors], axis = 0).pivot(index='date',columns='symbol',values='value').fillna(method='ffill').fillna(value=0)
+
 
     def trainNetwork(self):
         print("Training network")
@@ -286,8 +288,9 @@ class mlPipeline():
 
         self.rnn_model = tf.keras.models.Sequential([
             tf.keras.layers.LSTM(32, return_sequences = True),
-            tf.keras.layers.LSTM(60, return_sequences = True),
-	    tf.keras.layers.LSTM(30),
+            tf.keras.layers.LSTM(90, return_sequences = True),
+	        tf.keras.layers.LSTM(60, return_sequences = True),
+            tf.keras.layers.LSTM(30),
             tf.keras.layers.Dense(units = len(self.labels))
         ])
 
