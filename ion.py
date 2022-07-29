@@ -220,6 +220,8 @@ class orion:
                 lastUpdatePredict = date.today().strftime('%Y-%m-%d')
                 if not self.trained:
                     self.checkTrainStatus(force=True)
+                else:
+                    self.updateData()
                 predictions = self.mlPipe.predict(features=self.features.copy())
                 predictions.to_csv(self.credents.networkPredictionsLocation, index=False)
 
@@ -319,6 +321,7 @@ class mlPipeline():
         self.engineerFeatures(usePrev=True)
 
         self.features = (self.features - self.train_mean)/self.train_std
+        print(self.features.tail(10))
 
         data = tf.expand_dims(tf.constant(self.features[-self.windowLength:]), axis = 0)
 
