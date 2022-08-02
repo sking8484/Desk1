@@ -272,12 +272,13 @@ class mlPipeline():
         self.train_df, self.val_df, self.test_df = self.features[:self.trainSplit], self.features[self.trainSplit:self.valSplit], self.features[self.valSplit:]
 
     def normalizePredicting(self):
-        self.train_mean = (self.train_df).mean()
-        self.train_std = self.train_df.std()
+        self.train_mean = (self.train_df).min()
+        self.train_std = self.train_df.max()
 
-        self.train_df = (self.train_df - self.train_mean)/ self.train_std
-        self.val_df = (self.val_df - self.train_mean) / self.train_std
-        self.test_df = (self.test_df - self.train_mean) / self.train_std
+        self.train_df = (self.train_df - self.train_mean)/ (self.train_std - self.train_mean)
+        self.val_df = (self.val_df - self.train_mean) / (self.train_std - self.train_mean)
+        self.test_df = (self.test_df - self.train_mean) / (self.train_std - self.train_mean)
+
 
     def generateWindow(self):
         self.labels = [col + '_' + str(self.changes[0]) for col in self.currentUniverse]
@@ -289,19 +290,20 @@ class mlPipeline():
     def compile_and_fit(self):
 
         self.rnn_model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(32, return_sequences = True),
-            tf.keras.layers.LSTM(90, return_sequences = True),
-	        tf.keras.layers.LSTM(60, return_sequences = True),
-            tf.keras.layers.LSTM(30),
+            tf.keras.layers.LSTM(100, return_sequences = True),
+            tf.keras.layers.Dropout(.2),
+            tf.keras.layers.LSTM(150, return_sequences = True),
+            tf.keras.layers.Dropout(.2),
+            tf.keras.layers.LSTM(100),
             tf.keras.layers.Dense(units = len(self.labels))
         ])
 
-        MAX_EPOCHS = 20
+        MAX_EPOCHS = 2
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor = 'val_loss',
                                                          patience = 5,
                                                          mode = 'min')
         self.rnn_model.compile(loss = tf.keras.losses.MeanSquaredError(),
-                     optimizer = tf.keras.optimizers.Adam(),
+                     optimizer = tf.keras.optimizers.Adam(learning_rate = 0.01),
                      metrics = [tf.keras.metrics.MeanAbsoluteError()])
 
 
@@ -320,7 +322,7 @@ class mlPipeline():
 
         self.engineerFeatures(usePrev=True)
 
-        self.features = (self.features - self.train_mean)/self.train_std
+        self.features = (self.features - self.train_mean)/(self.train_std - self.train_mean)
         print(self.features.tail(10))
 
         data = tf.expand_dims(tf.constant(self.features[-self.windowLength:]), axis = 0)
