@@ -298,7 +298,7 @@ class mlPipeline():
             tf.keras.layers.Dense(units = len(self.labels))
         ])
 
-        MAX_EPOCHS = 2
+        MAX_EPOCHS = 20
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor = 'val_loss',
                                                          patience = 5,
                                                          mode = 'min')
