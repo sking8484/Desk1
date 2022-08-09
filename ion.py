@@ -294,16 +294,18 @@ class mlPipeline():
             tf.keras.layers.Dropout(.2),
             tf.keras.layers.LSTM(150, return_sequences = True),
             tf.keras.layers.Dropout(.2),
+            tf.keras.layers.LSTM(150, return_sequences = True),
+            tf.keras.layers.Dropout(.2),
             tf.keras.layers.LSTM(100),
             tf.keras.layers.Dense(units = len(self.labels))
         ])
 
-        MAX_EPOCHS = 20
+        MAX_EPOCHS = 10
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor = 'val_loss',
                                                          patience = 5,
                                                          mode = 'min')
         self.rnn_model.compile(loss = tf.keras.losses.MeanSquaredError(),
-                     optimizer = tf.keras.optimizers.Adam(learning_rate = 0.01),
+                     optimizer = tf.keras.optimizers.Adam(learning_rate = 0.005),
                      metrics = [tf.keras.metrics.MeanAbsoluteError()])
 
 
