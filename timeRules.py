@@ -33,7 +33,7 @@ class TimeRules:
                     {"start_time":[0,0,10], "end_time":[0,0,20], "day":[0]}
                 },
             "optimize":
-                {"start_time":[7,40,0],"end_time":[9,46,0], "day":[]},
+                {"start_time":[7,40,0],"end_time":[7,46,0], "day":[]},
             "updateWeights":
                 {'start_time':[7,50,0],'end_time':[7,55,0], "day":[]},
             "rebalance":
