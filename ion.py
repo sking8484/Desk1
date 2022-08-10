@@ -137,11 +137,20 @@ class ion:
 
 
         comovement = matrix(self.getGerberMatrix(cleaned_data).values)
-        print(returns)
 
-        G = matrix(0.0,(N,N))
-        G[::N+1] = -1.0
-        h = matrix(0.0,(N,1))
+
+        G1 = matrix(0.0,(N,N))
+        G1[::N+1] = -1.0
+        G2 = matrix(0.0,(N,N))
+        G2[::N + 1] = 1.0
+        G = matrix(np.concatenate([G1,G2]))
+        print(G)
+
+        h1 = matrix(0.0,(N,1))
+        h2 = matrix(.10, (N,1))
+        h = matrix(np.concatenate([h1,h2]))
+        print(G)
+        print(h)
         A = matrix(1.0,(1,N))
         b = matrix(leverageAmt)
 
