@@ -16,11 +16,11 @@ class TimeRules:
         self.timeRules = {
             "dataHub":
                 {"maintainUniverse":
-                    {"start_time":[5,0,0],"end_time":[5,5,0], "day":[]},
+                    {"start_time":[6,0,0],"end_time":[6,5,0], "day":[]},
                 "maintainTopDownData":
                     {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
-                    {"start_time":[5,20,0],"end_time":[5,30,0], "day":[]}
+                    {"start_time":[5,50,0],"end_time":[5,56,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
@@ -33,18 +33,18 @@ class TimeRules:
                     {"start_time":[0,0,10], "end_time":[0,0,20], "day":[0]}
                 },
             "optimize":
-                {"start_time":[7,10,0],"end_time":[7,20,0], "day":[]},
+                {"start_time":[7,40,0],"end_time":[7,46,0], "day":[]},
             "updateWeights":
-                {'start_time':[7,30,0],'end_time':[7,40,0], "day":[]},
+                {'start_time':[7,50,0],'end_time':[7,55,0], "day":[]},
             "rebalance":
                 {"start_time":[9,30,35],"end_time":[9,35,0], "day":[]},
             "deepLearning":
                 {'neuralNetworkPreperation':
-                    {"start_time":[5,40,0], "end_time":[5,55,0], "day":[]},
+                    {"start_time":[6,6,0], "end_time":[6,11,0], "day":[]},
                 'checkTrainStatus':
-                    {"start_time":[6,0,0], "end_time":[6,15,0], 'day':[]},
+                    {"start_time":[6,12,0], "end_time":[6,20,0], 'day':[]},
                 'predict':
-                    {'start_time':[7,0,0], "end_time":[7,6,0], 'day':[]}
+                    {'start_time':[7,20,0], "end_time":[7,30,0], 'day':[]}
                 }
             }
 
