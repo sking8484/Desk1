@@ -26,7 +26,7 @@ class TimeRules:
                 {"createCountrySectorWeights":
                     {"start_time":[9,40,0],"end_time":[9,50,0],"day":[]},
                 "calcPerformance":
-                    {"start_time":[5,10,0],"end_time":[5,16,0], "day":[]},
+                    {"start_time":[6,12,0],"end_time":[12,18,0], "day":[]},
                 "createVariances":
                     {"start_time":[0,0,1], "end_time":[0,0,6], "day":[0]},
                 "createCorrelations":
