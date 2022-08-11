@@ -16,24 +16,36 @@ class TimeRules:
         self.timeRules = {
             "dataHub":
                 {"maintainUniverse":
-                    {"start_time":[4,0,0],"end_time":[4,5,0], "day":[]},
+                    {"start_time":[6,0,0],"end_time":[6,5,0], "day":[]},
                 "maintainTopDownData":
                     {"start_time":[1,0,0],"end_time":[1,30,0], "day":[]},
                 "maintainFactors":
-                    {"start_time":[4,10,0],"end_time":[23,15,0], "day":[]}
+                    {"start_time":[5,50,0],"end_time":[5,56,0], "day":[]}
                 },
             "reportingSuite":
                 {"createCountrySectorWeights":
-                    {"start_time":[7,0,0],"end_time":[7,10,0],"day":[]},
+                    {"start_time":[9,40,0],"end_time":[9,50,0],"day":[]},
                 "calcPerformance":
-                    {"start_time":[4,20,0],"end_time":[4,25,0], "day":[]},
+                    {"start_time":[6,12,0],"end_time":[12,18,0], "day":[]},
+                "createVariances":
+                    {"start_time":[0,0,1], "end_time":[0,0,6], "day":[0]},
+                "createCorrelations":
+                    {"start_time":[0,0,10], "end_time":[0,0,20], "day":[0]}
                 },
             "optimize":
-                {"start_time":[4,30,0],"end_time":[4,40,0], "day":[]},
+                {"start_time":[7,40,0],"end_time":[7,46,0], "day":[]},
             "updateWeights":
-                {'start_time':[4,45,0],'end_time':[4,50,0], "day":[]},
+                {'start_time':[7,50,0],'end_time':[7,55,0], "day":[]},
             "rebalance":
-                {"start_time":[6,30,0],"end_time":[6,50,0], "day":[]}
+                {"start_time":[9,30,35],"end_time":[9,35,0], "day":[]},
+            "deepLearning":
+                {'neuralNetworkPreperation':
+                    {"start_time":[6,6,0], "end_time":[6,11,0], "day":[]},
+                'checkTrainStatus':
+                    {"start_time":[6,12,0], "end_time":[6,20,0], 'day':[]},
+                'predict':
+                    {'start_time':[7,20,0], "end_time":[7,30,0], 'day':[]}
+                }
             }
 
     def getTiming(self,lastUpdate:str, callingFunction:'list[str]') -> bool:

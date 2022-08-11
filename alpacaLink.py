@@ -47,7 +47,7 @@ class alpacaLink:
         self.finalOrders = []
         self.sellNonUniverse()
         self.finalOrders += [self.createTrades(order) for order in ordersToSubmit]
-
+        self.finalOrders = sorted(self.finalOrders, key = lambda d:d['marketVal'])
         self.placeTrades(self.finalOrders)
 
     def sellNonUniverse(self):
@@ -58,6 +58,7 @@ class alpacaLink:
     def createTrades(self, currOrder):
         if round(float(currOrder['value']),2) == 0:
             currOrder['orderType']="LIQ"
+            currOrder['marketVal'] = 0
         else:
             currOrder['marketVal'] = round((self.buying_power)*float(currOrder['value']),2)
             currOrder['orderType']='TRADE'

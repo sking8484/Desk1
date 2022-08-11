@@ -53,8 +53,11 @@ class dataLink:
     def returnTable(self, tableName: str, pivotObj:dict = None) -> pd.DataFrame:
 
         query = "SELECT * FROM " + tableName
-        self.cursor.execute(query)
-        out = self.cursor.fetchall()
+        try:
+            self.cursor.execute(query)
+            out = self.cursor.fetchall()
+        except Exception as e:
+            return pd.DataFrame({'date':[]})
         db = pd.DataFrame(out)
         field_names = [i[0] for i in self.cursor.description]
         db.columns = field_names
