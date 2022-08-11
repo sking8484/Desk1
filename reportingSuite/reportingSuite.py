@@ -67,7 +67,7 @@ class reportingSuite:
                 data.rename(columns= {0:'value'}, inplace=True)
                 data['symbol'] = 'pct_change'
 
-
+                data['date'] = data['date'].dt.strftime('%Y-%m-%d')
 
 
 
