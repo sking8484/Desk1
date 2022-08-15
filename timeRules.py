@@ -40,7 +40,7 @@ class TimeRules:
                 {"start_time":[9,30,35],"end_time":[9,35,0], "day":[]},
             "deepLearning":
                 {'neuralNetworkPreperation':
-                    {"start_time":[6,6,0], "end_time":[23,11,0], "day":[]},
+                    {"start_time":[6,6,0], "end_time":[6,11,0], "day":[]},
                 'checkTrainStatus':
                     {"start_time":[6,12,0], "end_time":[6,20,0], 'day':[]},
                 'predict':
