@@ -4,6 +4,7 @@ from inspect import trace
 import os
 import sys
 import traceback
+import boto3
 
 fpath = os.path.join(os.path.dirname(__file__),'DataHub')
 sys.path.append(fpath)
@@ -18,6 +19,11 @@ import time
 from timeRules import TimeRules
 import pandas as pd
 
+secret = boto3.client('secretsmanager')
+kwargs = {'SecretId': "myName"}
+response = secret.get_secret_value(**kwargs)
+print(response['SecretString'])
+put = input("Hello")
 
 class ella:
     def __init__(self) -> None:
