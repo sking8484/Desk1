@@ -1,4 +1,12 @@
 
+import pandas as pd
+from timeRules import TimeRules
+import time
+from datetime import date, datetime
+import datetime as dt
+import threading
+from DataHub.privateKeys.privateData import credentials
+from ion import ion, orion
 from concurrent.futures import thread
 from inspect import trace
 import os
@@ -6,24 +14,16 @@ import sys
 import traceback
 import boto3
 
-fpath = os.path.join(os.path.dirname(__file__),'DataHub')
+fpath = os.path.join(os.path.dirname(__file__), 'DataHub')
 sys.path.append(fpath)
 
 
-from ion import ion, orion
-from DataHub.privateKeys.privateData import credentials
-import threading
-import datetime as dt
-from datetime import date, datetime
-import time
-from timeRules import TimeRules
-import pandas as pd
+def handler(event, context):
+    secret = boto3.client('secretsmanager')
+    kwargs = {'SecretId': "myName"}
+    response = secret.get_secret_value(**kwargs)
+    print(response['SecretString'])
 
-secret = boto3.client('secretsmanager')
-kwargs = {'SecretId': "myName"}
-response = secret.get_secret_value(**kwargs)
-print(response['SecretString'])
-put = input("Hello")
 
 class ella:
     def __init__(self) -> None:
@@ -49,18 +49,18 @@ class ella:
     @checkTiming
     def optimize(self) -> None:
         try:
-            data = pd.read_csv(self.credents.stockPriceFile).pivot(index = 'date', columns = 'symbol', values = 'value').reset_index()
+            data = pd.read_csv(self.credents.stockPriceFile).pivot(
+                index='date', columns='symbol', values='value').reset_index()
             predictions = pd.read_csv(self.credents.networkPredictionsLocation)
-            weights_df = self.ion.getOptimalWeights(data, delta = 135, leverageAmt=1.9, predictions=predictions, usePredictions=True)
-            weights_df.to_csv(self.credents.weightsFile, index = False)
+            weights_df = self.ion.getOptimalWeights(
+                data, delta=135, leverageAmt=1.9, predictions=predictions, usePredictions=True)
+            weights_df.to_csv(self.credents.weightsFile, index=False)
 
         except Exception as e:
             print(traceback.print_exc())
 
     @checkTiming
     def updateWeights(self) -> None:
-
-
         """
         This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
         Most of this will be abstracted away.
@@ -69,17 +69,19 @@ class ella:
         try:
             DataLink = dataLink(self.credents.credentials)
             weights_df = pd.read_csv(self.credents.weightsFile)
-            predictions_df = pd.read_csv(self.credents.networkPredictionsLocation)
-            DataLink.append(self.credents.weightsTable,weights_df)
-            DataLink.append(self.credents.networkPredictionsTable, predictions_df)
+            predictions_df = pd.read_csv(
+                self.credents.networkPredictionsLocation)
+            DataLink.append(self.credents.weightsTable, weights_df)
+            DataLink.append(
+                self.credents.networkPredictionsTable, predictions_df)
 
         except Exception as e:
-            print("The following error occured at " + datetime.now().strftime("%Y-%m-%d-%H-%M"))
+            print("The following error occured at " +
+                  datetime.now().strftime("%Y-%m-%d-%H-%M"))
             print(traceback.print_exc())
 
     @checkTiming
     def rebalance(self) -> None:
-
         """
         This checks if we are between 6 and 7 am PST, and then gets the data, calculates the weights and uploads to SQL
         Most of this will be abstracted away.
@@ -88,7 +90,6 @@ class ella:
             threadRebalance()
         except Exception as e:
             print(traceback.print_exc())
-
 
     def runReportingSuite(self):
         self.ReportingSuite = reportingSuite()
@@ -102,18 +103,18 @@ class ella:
             prices = DataLink.returnTable(self.credents.mainStockTable)
             factors = DataLink.returnTable(self.credents.mainFactorTable)
 
-            prices.to_csv(self.credents.networkPricesLocation, index = False)
-            factors.to_csv(self.credents.networkFactorsLocation, index = False)
+            prices.to_csv(self.credents.networkPricesLocation, index=False)
+            factors.to_csv(self.credents.networkFactorsLocation, index=False)
         except Exception as e:
             print(traceback.print_exc())
-
 
     def neuralNetwork(self):
         orionObj = orion()
         orionObj.controlNetwork()
 
-controller = ella()
 
+controller = ella()
+'''
 options = {
     '-opt':"Optimization",
     '-hub':'Main Script',
@@ -146,4 +147,4 @@ elif programSelector == '-hub':
     t6 = threading.Thread(target = controller.neuralNetworkPreperation, args = (['deepLearning', 'neuralNetworkPreperation'],)).start()
 
 
-
+'''

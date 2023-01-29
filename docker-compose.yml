@@ -2,6 +2,8 @@ services:
   app:
     build: .
     container_name: deskonetrading
-    command: python src/ella.py
+    command: ella.handler
     env_file:
       .env
+    ports:
+      - 9000:8080
