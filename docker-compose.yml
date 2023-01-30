@@ -1,7 +1,7 @@
 services:
   app:
+    image: deskonecontainer
     build: .
-    container_name: deskonetrading
     command: ella.handler
     env_file:
       .env

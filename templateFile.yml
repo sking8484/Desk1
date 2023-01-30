@@ -1,0 +1,18 @@
+Resources:
+  LF36BBE:
+    Type: AWS::Lambda::Function
+    Properties:
+      PackageType: Image
+      Code:
+        ImageUri: !Ref 'imageUri'
+      FunctionName:
+        deskonefunction
+      Role: arn:aws:iam::445420819725:role/service-role/deskonefunction-role-65py88cf
+      Architectures:
+        - x86_64
+      MemorySize: 1024
+      Timeout: 300
+
+Parameters:
+  imageUri:
+    Type: String
