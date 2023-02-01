@@ -1,16 +1,24 @@
 include .env
+# Export the service list
+export SERVICE_LIST=./deployment/service-list.txt
 
-build-image:
-	docker compose build
+build-images:
+	for service in `cat $${SERVICE_LIST}`; do \
+		docker build -f "./deployment/$${service}/." -t "$${service}-container" . --build-arg function=$${service} ; \
+	done
+	#docker compose build
 
-create-ecr-repo: build-image
-	-aws ecr create-repository --repository-name $(ECR_REPO_NAME)
+create-ecr-repo: build-images
+	for service in `cat $${SERVICE_LIST}`; do \
+		aws ecr create-repository --repository-name $${service}-repo ; \
+	done
 
 publish: create-ecr-repo
-	echo $(AWS_ACCESS_KEY_ID)
-	docker tag deskonecontainer:latest $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$(ECR_REPO_NAME):latest 
-	aws ecr get-login-password | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com
-	docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$(ECR_REPO_NAME):latest
+	for service in `cat $${SERVICE_LIST}`; do \
+		docker tag $${service}-container:latest $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
+		aws ecr get-login-password | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com ; \
+		docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
+	done
 
 deploy: publish
 	aws cloudformation deploy --stack-name $(CFN_STACK_NAME) \
