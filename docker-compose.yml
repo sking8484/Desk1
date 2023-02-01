@@ -1,9 +1,0 @@
-services:
-  app:
-    image: deskonecontainer
-    build: .
-    command: ella.handler
-    env_file:
-      .env
-    ports:
-      - 9000:8080
