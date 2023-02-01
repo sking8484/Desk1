@@ -2,6 +2,8 @@ include .env
 # Export the service list
 export SERVICE_LIST=./deployment/service-list.txt
 
+run-tests:
+	python3 -m unittest discover -s src/tests -v
 build-images:
 	for service in `cat $${SERVICE_LIST}`; do \
 		docker build -f "./deployment/$${service}/." -t "$${service}-container" . --build-arg function=$${service} ; \
