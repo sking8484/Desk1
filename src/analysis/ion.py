@@ -10,7 +10,7 @@ from datetime import date
 import math
 from timeRules import TimeRules
 
-from DataHub.privateKeys.privateData import credentials
+from datahub.privateKeys.privateData import credentials
 import time
 
 """
