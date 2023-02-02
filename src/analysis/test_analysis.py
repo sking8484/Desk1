@@ -1,4 +1,5 @@
 import unittest
+import analysis
 
 class TestMethods(unittest.TestCase):
     def test_add(self):
