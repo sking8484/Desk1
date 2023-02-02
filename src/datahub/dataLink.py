@@ -5,6 +5,8 @@ from inspect import trace
 import numpy as np
 import traceback
 
+"""TODO - Create ABC of dataLink. This will allow for better testing"""
+
 class dataLink:
     def __init__(self, credentials: dict):
 
