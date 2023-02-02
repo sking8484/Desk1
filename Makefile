@@ -2,7 +2,7 @@ include .env
 # Export the service list
 export SERVICE_LIST=./deployment/service-list.txt
 
-run-tests:
+test:
 	python3 -m unittest discover -s src -v
 build-images:
 	for service in `cat $${SERVICE_LIST}`; do \
