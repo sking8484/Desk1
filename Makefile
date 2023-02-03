@@ -3,7 +3,7 @@ include .env
 export SERVICE_LIST=./deployment/service-list.txt
 
 test:
-	python3 -m unittest discover -s src -v
+	python3 -W ignore:PendingDeprecationWarning -m unittest discover -s src -v
 build-images:
 	for service in `cat $${SERVICE_LIST}`; do \
 		docker build -f "./deployment/$${service}/." -t "$${service}-container" . --build-arg function=$${service} ; \

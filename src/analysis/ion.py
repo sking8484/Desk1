@@ -9,9 +9,10 @@ import datetime
 from datetime import date
 import math
 from timeRules import TimeRules
-
 from datahub.privateKeys.privateData import credentials
 import time
+from warnings import simplefilter
+simplefilter(action='ignore', category=PendingDeprecationWarning)
 
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.

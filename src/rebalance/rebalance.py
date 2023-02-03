@@ -16,7 +16,11 @@ class AlpacaLink(Broker):
     def initializeBroker(self):
         alpaca_pubkey = self.accountObj['alpaca_pubkey']
         alpaca_seckey = self.accountObj['alpaca_seckey']
-        alpaca_baseurl = self.accountObj['alpaca_baseurl']
+
+        if 'alpaca_baseurl' in self.accountObj.keys():
+            alpaca_baseurl = self.accountObj['alpaca_baseurl']
+        else:
+            alpaca_baseurl = "https://paper-api.alpaca.markets"
             
         self.brokerApi= tradeapi.REST(alpaca_pubkey,alpaca_seckey,alpaca_baseurl,'v2')
 
@@ -42,10 +46,10 @@ class AlpacaLink(Broker):
         return self.getOpenPosition(position).market_value
         
     def placeTrade(self, order: dict):
-        self.getBrokerApi().submit_order(**order)
+        return self.getBrokerApi().submit_order(**order)
         
     def liquidate(self, position: str):
-        self.getBrokerApi().close_position(position)
+        return self.getBrokerApi().close_position(position)
 
 
 class AlpacaOrderCreator(OrderCreator):
@@ -72,7 +76,7 @@ class AlpacaOrderCreator(OrderCreator):
         liquidations = []
         for pos in self.broker.getOpenPositions():
             if not pos.symbol in universe:
-                self.liquidations.append({'symbol':pos.symbol,'orderType':'LIQ'}) 
+                liquidations.append({'symbol':pos.symbol,'orderType':'LIQ'}) 
         return liquidations
 
     def createFinalOrders(self, desiredWeights, liquidations):
@@ -89,8 +93,9 @@ class AlpacaOrderCreator(OrderCreator):
                     currOrder['marketVal'] -= float(self.broker.getPositionMarketValue(currOrder['symbol'].upper()))
             currOrder['symbol'] = currOrder['symbol'].upper()
             orders.append(currOrder)
-        self.finalOrders += orders
         self.finalOrders += liquidations
+        self.finalOrders += orders
+
         
     def buildOrderBook(self):
         desiredWeights = self.retrieveDesiredWeights()
