@@ -6,133 +6,112 @@ from datahub.privateKeys.privateData import credentials
 from datahub.dataLink import dataLink
 import json
 import threading
-from abc import ABC, abstractmethod 
-
-class Broker(ABC):
-    @abstractmethod
-    def __init__(self, accountObj: dict):
-        pass 
-    
-    @abstractmethod
-    def initializeBroker(self):
-        pass 
-    
-    @abstractmethod
-    def getBrokerDict(self):
-        pass
-
-    @abstractmethod
-    def getOpenPositions(self):
-        pass 
-
-    @abstractmethod
-    def closeOpenOrders(self):
-        pass 
-
-    @abstractmethod
-    def getBuyingPower(self):
-        pass
-
-    @abstractmethod
-    def getOpenPosition(self, position: str):
-        pass
-    
-    @abstractmethod
-    def getOpenPositionMarketValue(self, position: str):
-        pass
-
-    @abstractmethod
-    def placeTrade(self, orderDict: dict):
-        pass
-        
-    @abstractmethod
-    def liquidate(self, position: str):
-        pass
+from rebalance.abstract_classes import Broker, OrderCreator
 
 class AlpacaLink(Broker):
     def __init__(self, accountDict: dict):
         self.accountObj = accountDict
-        self.brokerObj = None
-
+        self.brokerApi = "Main broker API. Requires call to initialize to be setup"
+        
     def initializeBroker(self):
         alpaca_pubkey = self.accountObj['alpaca_pubkey']
         alpaca_seckey = self.accountObj['alpaca_seckey']
         alpaca_baseurl = self.accountObj['alpaca_baseurl']
+            
+        self.brokerApi= tradeapi.REST(alpaca_pubkey,alpaca_seckey,alpaca_baseurl,'v2')
 
-        self.brokerObj= tradeapi.REST(alpaca_pubkey,alpaca_seckey,alpaca_baseurl,'v2')
+    def initializeTestBroker(self, broker):
+        self.brokerApi = broker
 
-    def getBrokerDict(self):
-        return self.brokerObj
+    def getBrokerApi(self):
+        return self.brokerApi
 
     def getOpenPositions(self):
-        return self.getBrokerDict().list_positions()
+        return self.getBrokerApi().list_positions()
  
     def closeOpenOrders(self):
-        self.getBrokerDict().cancel_all_orders()
+        self.getBrokerApi().cancel_all_orders()
 
     def getBuyingPower(self):
-        return float(self.getBrokerDict().get_account().equity)
+        return float(self.getBrokerApi().get_account().equity)
         
     def getOpenPosition(self, position: str):
-        return self.getBrokerDict().get_position(position.upper())
+        return self.getBrokerApi().get_position(position.upper())
 
     def getOpenPositionMarketValue(self, position: str):
         return self.getOpenPosition(position).market_value
         
-    def placeTrade(self, orderDict: dict):
-        self.getBrokerDict().submit_order(**orderObj)
+    def placeTrade(self, order: dict):
+        self.getBrokerApi().submit_order(**order)
         
     def liquidate(self, position: str):
-        self.getBrokerDict().close_position(position)
+        self.getBrokerApi().close_position(position)
+
+
+class AlpacaOrderCreator(OrderCreator):
+    def __init__(self, dataLink, broker):
+        self.dataLink = dataLink 
+        self.broker = broker
+        self.finalOrders = []
+
+    def retrieveDesiredWeights(self):
+        desiredWeights = self.dataLink.returnTable(self.credents.weightsTable)
+        desiredWeights = desiredWeights[desiredWeights['date'] == max(desiredWeights['date'])]
+        desiredWeights = json.loads(desiredWeights.to_json(orient='records'))
+        return desiredWeights 
+
+    def createUniverse(self, desiredWeights):
+        universe = [pos['symbol'].upper() for pos in desiredWeights] 
+        return universe
+
+    def getOpenPositions(self):
+        openPositionsList = [pos.symbol for pos in self.broker.getOpenPositions()] 
+        return openPositionsList
+
+    def createLiquidations(self, universe):
+        liquidations = []
+        for pos in self.broker.getOpenPositions():
+            if not pos.symbol in universe:
+                self.liquidations.append({'symbol':pos.symbol,'orderType':'LIQ'}) 
+        return liquidations
+
+    def createFinalOrders(self, desiredWeights, liquidations):
+        self.finalOrders = []
+        orders = []
+        for currOrder in desiredWeights:
+            if round(float(currOrder['value']),2) == 0:
+                currOrder['orderType']="LIQ"
+                currOrder['marketVal'] = 0
+            else:
+                currOrder['marketVal'] = round((self.broker.getBuyingPower())*float(currOrder['value']),2)
+                currOrder['orderType']='TRADE'
+                if currOrder['symbol'].upper() in self.broker.getOpenPositions():
+                    currOrder['marketVal'] -= float(self.broker.getPositionMarketValue(currOrder['symbol'].upper()))
+            currOrder['symbol'] = currOrder['symbol'].upper()
+            orders.append(currOrder)
+        self.finalOrders += orders
+        self.finalOrders += liquidations
+        
+    def buildOrderBook(self):
+        desiredWeights = self.retrieveDesiredWeights()
+        universe = self.createUniverse(desiredWeights)
+        openPositions = self.getOpenPositions()
+        liquidations = self.createLiquidations(universe)
+        self.createFinalOrders(desiredWeights, liquidations)
+        return self.finalOrders
 
 class Rebalance:
     def __init__(self, broker: Broker):
-        self.credents = credentials()
-        self.dataLink = None #dataLink(self.credents.credentials)
         self.broker = broker
-
-    def getOrdersToSubmit(self):
-        """Need to reimplement this using a weights object!!!!!!!!!!!!!"""
-        """THis violates design principle"""
-        ordersToSubmit = self.dataLink.returnTable(self.credents.weightsTable)
-        ordersToSubmit = ordersToSubmit[ordersToSubmit['date'] == max(ordersToSubmit['date'])]
-        ordersToSubmit = json.loads(ordersToSubmit.to_json(orient='records'))
-        return ordersToSubmit
-
-    def rebalance(self):
-        ordersToSubmit = self.getOrdersToSubmit()
-        positionsToTrade = [pos['symbol'].upper() for pos in ordersToSubmit]
-        openPositionsList = [pos.symbol for pos in self.broker.getOpenPositions()]
-        finalOrders = []
-        sellNonUniverse(positionsToTrade, finalOrders)
-        finalOrders += [self.createTrades(order) for order in ordersToSubmit]
-        finalOrders = sorted(finalOrders, key = lambda d:d['marketVal'])
-        placeTrades(finalOrders)
-
-    def sellNonUniverse(self, positionsToTrade, finalOrders):
-        for pos in self.broker.getOpenPositions():
-            if not pos.symbol in positionsToTrade:
-                finalOrders.append({'symbol':pos.symbol,'orderType':'LIQ'})
-
-    def createTrades(self, currOrder):
-        if round(float(currOrder['value']),2) == 0:
-            currOrder['orderType']="LIQ"
-            currOrder['marketVal'] = 0
-        else:
-            currOrder['marketVal'] = round((self.broker.getBuyingPower())*float(currOrder['value']),2)
-            currOrder['orderType']='TRADE'
-            if currOrder['symbol'].upper() in self.broker.getOpenPositions():
-                currOrder['marketVal'] -= float(self.broker.getPositionMarketValue(currOrder['symbol'].upper()))
-        currOrder['symbol'] = currOrder['symbol'].upper()
-        return currOrder
-
+       
     def placeTrades(self, finalOrders):
+        orders = []
         for order in finalOrders:
-            print(order)
             time.sleep(1)
             if (order['orderType'] == 'LIQ'):
                 try:
                     self.broker.liquidate(order['symbol'])
+                    orders.append({"symbol":order['symbol'], "notional":"LIQ"})
                 except Exception as e:
                     print(e)
             else:
@@ -149,12 +128,14 @@ class Rebalance:
                         "time_in_force":'day'
                     }
                     self.broker.placeTrade(orderObj)
+                    orders.append({"symbol":order['symbol'], "notional":abs(order['marketVal'])})
                 except Exception as e:
                     print (e)
+        return orders
 
 
 
-def threadRebalance():
+def handler():
     alpacaCredents = credentials().alpaca_credents
     for i in range(len(alpacaCredents)):
         currAccount = alpacaCredents[i]
