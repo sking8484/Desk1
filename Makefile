@@ -1,6 +1,6 @@
 include .env
 # Export the service list
-export SERVICE_LIST=./service-list.txt
+export SERVICE_LIST=./deployment/service-list.txt
 
 test:
 ifeq ($(TEST_FILE), )
