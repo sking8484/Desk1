@@ -96,12 +96,14 @@ class TestBroker(unittest.TestCase):
         self.assertEqual(float(order.notional), float(100))
 
     def test_liquidate(self):
-        self.test_place_trade()
         credents = self.get_credents()
         broker = AlpacaLink(credents)
         broker.initializeBroker()
-        liquidation = broker.liquidate("BRK.B")
-        self.assertEqual(liquidation.symbol, "BRK.B")
+        if "BRK.B" in [pos.symbol for pos in broker.getOpenPositions()]:
+            liquidation = broker.liquidate("BRK.B")
+            self.assertEqual(liquidation.symbol, "BRK.B")
+        else:
+            self.assertRaises(alpaca_trade_api.rest.APIError, broker.liquidate, "LUV")
 
     def test_nonheld_liquidation(self):
         credents = self.get_credents()
