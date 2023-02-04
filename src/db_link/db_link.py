@@ -171,3 +171,6 @@ class DataLink:
 
     def closeConnection(self):
         self.cnxn.close()
+
+def test_setup():
+    print("SETUP")
