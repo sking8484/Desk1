@@ -1,5 +1,6 @@
-datahub
+analysis
 optimize
 rebalance
+datahub
 reporting-suite
-weights-update
+

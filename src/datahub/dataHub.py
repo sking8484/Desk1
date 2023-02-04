@@ -2,7 +2,6 @@ from inspect import trace
 from optparse import Values
 from threading import Timer
 import traceback
-from turtle import towards
 import pandas as pd
 from dataLink import dataLink
 from iexLink import iexLink
