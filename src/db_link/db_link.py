@@ -9,11 +9,11 @@ import mysql.connector as sqlconnection
 from inspect import trace
 import numpy as np
 import traceback
-import abstract_classes
+import abstract_classes_db_link
 
 """TODO - Create ABC of dataLink. This will allow for better testing"""
 
-class DataLink(abstract_classes.DataAPI):
+class DataLink(abstract_classes_db_link.DataAPI):
 
     def __init__(self, credentials: dict):
 
