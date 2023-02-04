@@ -8,15 +8,19 @@ import sys
 import datetime
 from datetime import date
 import math
-from timeRules import TimeRules
 import time
 from warnings import simplefilter
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 simplefilter(action='ignore', category=PendingDeprecationWarning)
 
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
 """
-
+def test_setup():
+    print("SETUP")
 
 class ion:
     def __init__(self):
