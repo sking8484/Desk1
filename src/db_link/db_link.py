@@ -7,13 +7,14 @@ import traceback
 
 """TODO - Create ABC of dataLink. This will allow for better testing"""
 
-class dataLink:
+class DataLink:
     def __init__(self, credentials: dict):
 
         """
         A class used to create a datalink between Python (Pandas specifically) and SQL.
         ...
         """
+        credentials['autocommit'] = True
         self.cnxn = sqlconnection.connect(**credentials)
         self.cursor = self.cnxn.cursor()
 
@@ -46,37 +47,16 @@ class dataLink:
 
         query = "CREATE TABLE " + tableName + "(" + columnString + ")"
 
-
         self.cursor.execute(query)
 
-        self.append(tableName,dataFrame)
-        self.commit()
-
-    def returnTable(self, tableName: str, pivotObj:dict = None) -> pd.DataFrame:
-
-        query = "SELECT * FROM " + tableName
-        try:
-            self.cursor.execute(query)
-            out = self.cursor.fetchall()
-        except Exception as e:
-            return pd.DataFrame({'date':[]})
-        db = pd.DataFrame(out)
-        field_names = [i[0] for i in self.cursor.description]
-        db.columns = field_names
-
-        if pivotObj != None:
-            return db.pivot(index = pivotObj['index'], columns = pivotObj['columns'], values = pivotObj['values']).reset_index()
-        else:
-            return db
-
     def append(self, tableName: str, dataFrame: pd.DataFrame) -> None:
+
         try:
             columnString = ""
             valuesString = ""
             dataFrame = dataFrame.replace(np.nan,0,regex=True)
 
             for col in dataFrame.columns:
-                print(col)
                 if (col != dataFrame.columns[-1]):
                     columnString += col + ", "
                     valuesString += "%s, "
@@ -88,65 +68,31 @@ class dataLink:
             query = "INSERT INTO " + tableName + " (" + columnString + ") VALUES (" + valuesString + ")"
 
             self.cursor.executemany(query,dataFrame.values.tolist())
-            self.commit()
+
         except Exception as e:
+
             print(traceback.print_exc())
             print("Could not find table. Creating now")
             self.createTable(tableName, dataFrame)
 
-    def joinTables(self, joinColumn, originalTableName, joinTableDataFrame):
+    def returnTable(self, tableName: str, pivotObj:dict = None) -> pd.DataFrame:
 
-        """
-        A method to join two tables
-            Creates a new table with same table name, but now with joined columns
+        query = "SELECT * FROM " + tableName
 
-            1. Creates an interim table using the createTable method without autoIncs.
-            2. Creates a new pandas dataframe from the two joins
-            3. Creates a new table called originalTableName_ from the dataframe
-            4. Deletes originalTableName table
-            5. Sets old table to originalTableName
-            6. Deletes originalTableName_
-        ...
+        try:
+            self.cursor.execute(query)
+            out = self.cursor.fetchall()
+        except Exception as e:
+            return pd.DataFrame({'date':[]})
 
-        Attributes
-        ----------
-        joinColumn: The primary key to join on.
-                    Must be in both tables
-        originalTableName: The table to be ammended
-        joinTableDataFrame: The new data that should be joined
-        """
-
-        #1.) Create interim table
-        self.createTable('interimTable', joinTableDataFrame, False)
-
-        #2.) Create new pandas dataframe from joins
-        query = "SELECT * FROM " + originalTableName + " LEFT JOIN interimTable ON " + originalTableName + "." + joinColumn + " = interimTable." + joinColumn
-        self.cursor.execute(query)
-
-        out = self.cursor.fetchall()
-        temp_df = pd.DataFrame(out)
+        db = pd.DataFrame(out)
         field_names = [i[0] for i in self.cursor.description]
-        temp_df.columns = field_names
+        db.columns = field_names
 
-        temp_df = temp_df.loc[:,~temp_df.columns.duplicated()]
-        #3.) Creates new table with joined dataframe
-
-        self.createTable(originalTableName + "_", temp_df, False)
-
-        #4.) Deletes old table
-        self.deleteTable(originalTableName)
-
-        #5.) Create new table with original table name and set add all values from originaltablename_ table
-        query = "CREATE TABLE " + originalTableName + " LIKE " + originalTableName + "_"
-        self.cursor.execute(query)
-        query = "INSERT INTO " + originalTableName + " SELECT * FROM " + originalTableName + "_"
-        self.cursor.execute(query)
-
-        #6.) Delete _ table
-        self.deleteTable(originalTableName + "_")
-        self.deleteTable("interimTable")
-
-        self.commit()
+        if pivotObj != None:
+            return db.pivot(index = pivotObj['index'], columns = pivotObj['columns'], values = pivotObj['values']).reset_index()
+        else:
+            return db
 
     def dropColumns(self, tableName, columnList):
 
@@ -170,7 +116,6 @@ class dataLink:
                 query += col + ";"
 
         self.cursor.execute(query)
-        self.commit()
 
 
     def deleteTable(self, tableName):
@@ -186,20 +131,9 @@ class dataLink:
 
         query = "DROP TABLE " + tableName
         self.cursor.execute(query)
-        self.commit()
 
 
-    def commit(self):
-
-        """
-        A method to commit the cursor
-        ...
-
-        Attributes
-        ----------
-        """
-
-        self.cnxn.commit()
+    
 
     def getColumns(self, table:str) -> list:
         return self.getLastRow(table).columns

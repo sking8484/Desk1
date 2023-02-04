@@ -9,7 +9,6 @@ import datetime
 from datetime import date
 import math
 from timeRules import TimeRules
-from datahub.privateKeys.privateData import credentials
 import time
 from warnings import simplefilter
 simplefilter(action='ignore', category=PendingDeprecationWarning)
@@ -174,7 +173,6 @@ class orion:
             import tensorflow as tf
         self.tf = tf
         self.TimeRules = TimeRules()
-        self.credents = credentials()
         self.universeCols = []
         self.factorCols = []
         self.windowLength = 252
