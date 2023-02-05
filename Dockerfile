@@ -6,5 +6,6 @@ RUN pip install -r requirements.txt
 
 
 COPY ./src/$function ./src/main
-COPY ./src/db_link ./src/db_link
+COPY ./src ./src
+RUN python src/main/handler.py 
 CMD [ "src/main/handler.handler" ]

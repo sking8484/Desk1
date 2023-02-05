@@ -1,5 +1,5 @@
 import unittest 
-import optimize.optimize
+from optimize.optimize import PortfolioOptimizer
 
 class TestOptimize(unittest.TestCase):
 
