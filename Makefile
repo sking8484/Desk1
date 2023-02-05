@@ -2,7 +2,12 @@ include .env
 # Export the service list
 export SERVICE_LIST=./deployment/service-list.txt
 
-test:
+test-imports:
+	for service in `cat $${SERVICE_LIST}`; do \
+		python3 src/$${service}/handler.py ; \
+	done 
+
+test: test-imports
 ifeq ($(TEST_FILE), )
 	python3 -W ignore:PendingDeprecationWarning -m unittest discover -s src -vvv -f
 else

@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from db_link.db_link import test_setup
+import db_link
 
 def handler(response, context):
-    test_setup()
+    db_link.test_setup()
+

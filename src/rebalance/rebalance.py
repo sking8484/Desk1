@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import alpaca_trade_api as tradeapi
 import time
 from alpaca_trade_api.rest import TimeFrame
@@ -5,7 +9,7 @@ import pandas as pd
 from db_link.db_link import DataLink
 import json
 import threading
-from rebalance.abstract_classes import Broker, OrderCreator
+from abstract_classes_rebalance import Broker, OrderCreator
 
 class AlpacaLink(Broker):
     def __init__(self, accountDict: dict):
