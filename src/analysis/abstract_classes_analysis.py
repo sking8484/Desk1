@@ -4,10 +4,10 @@ import numpy as np
 from typing import List, Optional
 from db_link.abstract_classes_db_link import DataAPI
 
-class AnalysisToolkit(ABC):
+class AnalysisToolKit(ABC):
     
     @abstractmethod
-    def calculate_length(self, data: np.ndarray) -> int:
+    def calculate_num_rows(self, data: np.ndarray) -> int:
         pass
 
     @abstractmethod
@@ -29,15 +29,15 @@ class Gerber(ABC):
         pass
 
     @abstractmethod
-    def calculate_limits(self, data: pd.DataFrame, Q: int) -> Dict[str, pd.DataFrame]:
+    def calculate_limits(self, data: pd.DataFrame, Q: int) -> dict[str, pd.DataFrame]:
         pass
 
     @abstractmethod
-    def initialize_upper_lower_matrices(self, data: pd.DataFrame) -> Dict[str, np.matrix]:
+    def initialize_upper_lower_matrices(self, data: pd.DataFrame) -> dict[str, np.matrix]:
         pass
 
     @abstractmethod
-    def calculate_upper_lower_matrices(self, upperMatrix: np.matrix, lowerMatrix: np.matrix) -> Dict[str, np.matrix]:
+    def calculate_upper_lower_matrices(self, upperMatrix: np.matrix, lowerMatrix: np.matrix) -> dict[str, np.matrix]:
         pass
 
     @abstractmethod
@@ -45,7 +45,7 @@ class Gerber(ABC):
         pass
 
     @abstractmethod
-    def build_gerber_numberator(self, upperMatrix: np.matrix, midMatrix: np.matrix, lowerMatrix: np.matrix) -> Dict[str, np.matrix]:
+    def build_gerber_numberator(self, upperMatrix: np.matrix, midMatrix: np.matrix, lowerMatrix: np.matrix) -> dict[str, np.matrix]:
         pass
 
     @abstractmethod
