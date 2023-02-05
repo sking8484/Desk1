@@ -4,18 +4,28 @@ import numpy as np
 from typing import List, Optional
 from db_link.abstract_classes_db_link import DataAPI
 
+class AnalysisToolkit(ABC):
+    
+    @abstractmethod
+    def calculate_length(self, data: np.ndarray) -> int:
+        pass
+
+    @abstractmethod
+    def diagonalize_matrix(self, data: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def calculate_std(self, data: np.ndarray, axis: Optional[int] = 0) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def divide_matrices(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
+        pass
+
 class Gerber(ABC):
     
     @abstractmethod
     def __init__(self, data: pd.DataFrame, Q: int):
-        pass
-
-    @abstractmethod
-    def calculate_length(self, data: pd.DataFrame) -> int:
-        pass 
-
-    @abstractmethod
-    def diagonalize_matrix(self, data: pd.DataFrame) -> pd.DataFrame:
         pass
 
     @abstractmethod
@@ -43,10 +53,6 @@ class Gerber(ABC):
         pass
         
     @abstractmethod
-    def divide_matrices(self, numeratorMatrix: np.matrix, denominatorMatrix: np.matrix) -> np.ndarray:
-        pass
-
-    @abstractmethod
     def create_gerber_matrix(self, diagonalizedMatrix: np.matrix, divisionRemainder: np.ndarray) -> np.matrix:
         pass
 
@@ -64,6 +70,6 @@ class QuantMethods(ABC):
     def get_gerber(self, Q: int) -> Gerber:
         pass
 
-    @abstractmethod
-    def get_mahalanobis(self) -> Mahalanobis:
-        pass
+    #@abstractmethod
+    #def get_mahalanobis(self) -> Mahalanobis:
+    #    pass

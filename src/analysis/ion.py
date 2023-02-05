@@ -1,4 +1,5 @@
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from typing import Optional
 import pandas as pd
 import numpy as np
@@ -12,15 +13,26 @@ import time
 from warnings import simplefilter
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-simplefilter(action='ignore', category=PendingDeprecationWarning)
-
+from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
 """
 def test_setup():
     print("SETUP")
+
+class AnalysisMethods(AnalysisToolKit):
+    
+    def calculate_num_rows(self, data: np.ndarray) -> int:
+        return data.shape()[0]
+
+    def diagonalize_matrix(self, data: np.ndarray) -> np.ndarray:
+        return np.diag(data)
+
+    def calculate_std(self, data: np.ndarray, axis: Optional[int] = 0) -> np.ndarray:
+        return np.std(data, axis = axis)
+
+    def divide_matrices(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
+        return np.divide(numerator, denominator)
 
 class ion:
     def __init__(self):
