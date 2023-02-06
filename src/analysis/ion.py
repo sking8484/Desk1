@@ -35,6 +35,96 @@ class AnalysisMethods(AnalysisToolKit):
     def divide_matrices(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
         return numerator / denominator
 
+class GerberStatistic(Gerber, AnalysisMethods):
+    
+    def __init__(self, data: pd.DataFrame, Q: int):
+        self.data = data 
+        self.Q = Q 
+    
+    def calculate_limits(self, data: np.ndarray, Q: int) -> dict[str, np.ndarray]:
+        upperLimit = Q*self.calculate_std(data)
+        lowerLimit = -1*Q*self.calculate_std(data)
+
+        return {
+            'upperLimit':upperLimit,
+            'lowerLimit':lowerLimit
+        }
+
+
+    def initialize_upper_lower_matrices(self, data: np.ndarray, upperLimit: np.ndarray, lowerLimit: np.ndarray) -> dict[str, np.ndarray]:
+        upperMatrix = data - upperLimit 
+        lowerMatrix = data - lowerLimit 
+
+        return {
+            'upperMatrix':upperMatrix,
+            'lowerMatrix':lowerMatrix
+        }
+
+    def calculate_upper_lower_matrices(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> dict[str, np.ndarray]:
+
+        upperMatrix[upperMatrix >= 0] = 1
+        upperMatrix[upperMatrix < 0] = 0
+
+        lowerMatrix[lowerMatrix <= 0] = -1
+        lowerMatrix[lowerMatrix > 0] = 0
+        lowerMatrix[lowerMatrix == -1] = 1
+        
+        return {
+            'upperMatrix': upperMatrix,
+            'lowerMatrix': lowerMatrix
+        }
+
+    def calculate_mid_matrix(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> np.ndarray:
+        
+        
+        midMatrix = upperMatrix + lowerMatrix
+        midMatrix = midMatrix + 1
+        midMatrix[midMatrix == 2] = 0
+
+        return midMatrix
+
+    def build_gerber_numerator(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> np.ndarray:
+
+        N_UU = t(upperMatrix) @ upperMatrix
+        N_DD = t(lowerMatrix) @ lowerMatrix
+        N_UD = t(upperMatrix) @ lowerMatrix
+        N_DU = t(lowerMatrix) @ upperMatrix
+
+        return N_UU + N_DD - N_UD - N_DU
+
+    def build_gerber_denominator(self, midMatrix: np.ndarray, T: int) -> np.ndarray:
+
+        N_NN = t(midMatrix) @ midMatrix
+        denom_mat = np.copy(N_NN)
+        denom_mat[denom_mat > -100000] = T
+        denom_mat = denom_mat - N_NN
+
+        print(denom_mat)
+        return denom_mat
+
+    def divide_gerber_matrices(self, num_mat: np.ndarray, denom_mat: np.ndarray) -> np.ndarray:
+
+        return self.divide_matrices(num_mat, denom_mat)
+
+    def create_gerber_stat(self, diagonalizedMatrix: np.ndarray, gerberStat: np.ndarray) -> np.ndarray:
+        
+        return diagonalizedMatrix @ gerberStat @ diagonalizedMatrix
+
+    def get_gerber_statistic(self) -> pd.DataFrame:
+        
+        array_data = self.data.to_numpy()
+        limits = self.calculate_limits(array_data, self.Q)
+        upper_lower_matrices = self.initialize_upper_lower_matrices(array_data, limits['upperLimit'], limits['lowerLimit'])
+        upper_lower_matrices = self.calculate_upper_lower_matrices(upper_lower_matrices['upperMatrix'], upper_lower_matrices['lowerMatrix'])
+        upper_matrix, lower_matrix = upper_lower_matrices['upperMatrix'], upper_lower_matrices['lowerMatrix']
+        mid_matrix = self.calculate_mid_matrix(upper_matrix, lower_matrix)
+        gerber_numerator = self.build_gerber_numerator(upper_matrix, lower_matrix)
+        gerber_denominator = self.build_gerber_denominator(mid_matrix, self.calculate_num_rows(array_data))
+        gerber_matrix = self.divide_matrices(gerber_numerator, gerber_denominator)
+        gerber_stat = self.create_gerber_stat(self.diagonalize_matrix(self.calculate_std(array_data)), gerber_matrix)
+
+        return pd.DataFrame(gerber_stat, index = self.data.columns, columns = self.data.columns)
+
 class ion:
     def __init__(self):
 

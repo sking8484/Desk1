@@ -29,35 +29,39 @@ class Gerber(ABC):
         pass
 
     @abstractmethod
-    def calculate_limits(self, data: pd.DataFrame, Q: int) -> dict[str, pd.DataFrame]:
+    def calculate_limits(self, data: np.ndarray, Q: int) -> dict[str, np.ndarray]:
         pass
 
     @abstractmethod
-    def initialize_upper_lower_matrices(self, data: pd.DataFrame) -> dict[str, np.matrix]:
+    def initialize_upper_lower_matrices(self, data: np.ndarray, upperLimit: np.ndarray, lowerLimit: np.ndarray) -> dict[str, np.ndarray]:
         pass
 
     @abstractmethod
-    def calculate_upper_lower_matrices(self, upperMatrix: np.matrix, lowerMatrix: np.matrix) -> dict[str, np.matrix]:
+    def calculate_upper_lower_matrices(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> dict[str, np.ndarray]:
         pass
 
     @abstractmethod
-    def calculate_mid_matrix(self, upperMatrix: np.matrix, lowerMatrix: np.matrix) -> np.matrix:
+    def calculate_mid_matrix(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def build_gerber_numberator(self, upperMatrix: np.matrix, midMatrix: np.matrix, lowerMatrix: np.matrix) -> dict[str, np.matrix]:
+    def build_gerber_numerator(self, upperMatrix: np.ndarray, lowerMatrix: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def build_gerber_denominator(self, data: np.matrix, T: int) -> np.matrix:
+    def build_gerber_denominator(self, middleMatrix: np.ndarray, T: int) -> np.ndarray:
         pass
         
     @abstractmethod
-    def create_gerber_matrix(self, diagonalizedMatrix: np.matrix, divisionRemainder: np.ndarray) -> np.matrix:
+    def divide_gerber_matrices(self, num_mat: np.ndarray, denom_mat: np.ndarray) -> np.ndarray:
         pass
 
     @abstractmethod
-    def get_gerber_statistic(self):
+    def create_gerber_stat(self, diagonalizedMatrix: np.ndarray, gerberStat: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def get_gerber_statistic(self) -> pd.DataFrame:
         pass
 
 

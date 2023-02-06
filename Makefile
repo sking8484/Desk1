@@ -7,7 +7,7 @@ test-imports:
 		python3 src/$${service}/handler.py ; \
 	done 
 
-test: test-imports
+test: 
 ifeq ($(TEST_FILE), )
 	python3 -W ignore:PendingDeprecationWarning -m unittest discover -s src -vvv -f
 else
