@@ -99,7 +99,6 @@ class GerberStatistic(Gerber, AnalysisMethods):
         denom_mat[denom_mat > -100000] = T
         denom_mat = denom_mat - N_NN
 
-        print(denom_mat)
         return denom_mat
 
     def divide_gerber_matrices(self, num_mat: np.ndarray, denom_mat: np.ndarray) -> np.ndarray:
@@ -108,7 +107,10 @@ class GerberStatistic(Gerber, AnalysisMethods):
 
     def create_gerber_stat(self, diagonalizedMatrix: np.ndarray, gerberStat: np.ndarray) -> np.ndarray:
         
-        return diagonalizedMatrix @ gerberStat @ diagonalizedMatrix
+        ones = np.ones(np.shape(diagonalizedMatrix))
+        diag = (np.diag(diagonalizedMatrix))
+        np.fill_diagonal(ones, diag)
+        return np.multiply(np.multiply(ones, gerberStat), ones)
 
     def get_gerber_statistic(self) -> pd.DataFrame:
         
@@ -121,7 +123,7 @@ class GerberStatistic(Gerber, AnalysisMethods):
         gerber_numerator = self.build_gerber_numerator(upper_matrix, lower_matrix)
         gerber_denominator = self.build_gerber_denominator(mid_matrix, self.calculate_num_rows(array_data))
         gerber_matrix = self.divide_matrices(gerber_numerator, gerber_denominator)
-        gerber_stat = self.create_gerber_stat(self.diagonalize_matrix(self.calculate_std(array_data)), gerber_matrix)
+        gerber_stat = self.create_gerber_stat(self.diagonalize_matrix(self.calculate_std(array_data, axis = 0)), gerber_matrix)
 
         return pd.DataFrame(gerber_stat, index = self.data.columns, columns = self.data.columns)
 
