@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from analysis.ion import AnalysisMethods, GerberStatistic
 from numpy import transpose as t
+from sklearn.decomposition import PCA
 
 class TestAnalysisMethods(unittest.TestCase):
     
@@ -34,6 +35,32 @@ class TestAnalysisMethods(unittest.TestCase):
                [1.5, 2. , 2.5],
                [3. , 3.5, 4. ]])
         self.assertEqual(methods.divide_matrices(x1, x2).tolist(), output.tolist())
+
+    def test_calculate_svd(self):
+        methods = AnalysisMethods()
+        matrix = np.array([
+                                [1, 2, 3],
+                                [3, 2, 6],
+                                [7, 24, 2]
+                            ])
+
+        svd_proc = methods.calculate_svd(matrix)
+        self.assertTrue(np.allclose(matrix, svd_proc['elementary_matrices'].sum(axis=0), atol=1e-10))
+
+    def test_filter_svd_matrices(self):
+        
+        methods = AnalysisMethods()
+        matrix = np.array([
+                                [1, 2, 3],
+                                [3, 2, 6],
+                                [7, 24, 2]
+                            ])
+
+        svd_proc = methods.calculate_svd(matrix)
+        filtered_matrix = methods.filter_svd_matrices(svd_proc['elementary_matrices'], svd_proc['singular_values'], 95)
+        expected = svd_proc['elementary_matrices'][0] + svd_proc['elementary_matrices'][1]
+        self.assertEqual(filtered_matrix.tolist(), expected.tolist())
+
 
 class TestGerberStatistic(unittest.TestCase):
 
@@ -210,7 +237,6 @@ class TestGerberStatistic(unittest.TestCase):
 
         stat = gerber_method.get_gerber_statistic()
 
-        print(stat)
 
 if __name__ == '__main__':
     unittest.main()

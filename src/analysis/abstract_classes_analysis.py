@@ -22,6 +22,45 @@ class AnalysisToolKit(ABC):
     def divide_matrices(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
         pass
 
+    @abstractmethod
+    def calculate_svd(self, matrix: np.ndarray) -> dict[str, np.ndarray]:
+        pass
+
+    @abstractmethod
+    def filter_svd_matrices(self, elementaryMatrices: np.ndarray, singularValues: np.ndarray, limit: int) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def run_regression(self, features: np.ndarray, labels: np.ndarray):
+        pass
+
+class MSSA(ABC):
+    
+    @abstractmethod
+    def __init__(self, data: pd.DataFrame, L: int, lookBack: int, pcaMax: float):
+        pass 
+
+    @abstractmethod
+    def create_page_matrix(self, data: np.ndarray, L: int, lookBack: int) -> np.ndarray:
+        pass 
+
+    @abstractmethod
+    def concat_matrices(self, baseMatrix: np.ndarray, additionalMatrix: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def create_hsvt_matrix(self, TBD: np.ndarray):
+        pass
+
+    @abstractmethod
+    def seperate_labels(self, hsvtMatrix: np.ndarray):
+        pass
+
+    @abstractmethod
+    def predict(self, learned_params: np.ndarray, predictors: np.ndarray):
+        pass
+
+    
 class Gerber(ABC):
     
     @abstractmethod
