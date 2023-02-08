@@ -14,6 +14,8 @@ import math
 import time
 from warnings import simplefilter
 from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods, MSSA
+from sklearn.linear_model import LinearRegression
+import logging
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
 """
@@ -37,7 +39,6 @@ class AnalysisMethods(AnalysisToolKit):
     def calculate_svd(self, matrix: np.ndarray) -> dict[str, np.ndarray]:
         d = np.linalg.matrix_rank(matrix)
 
-        print(d)
         U, Sigma, V = np.linalg.svd(matrix)
         V = t(V)
 
@@ -48,14 +49,13 @@ class AnalysisMethods(AnalysisToolKit):
             "singular_values":Sigma
         }
 
-    def filter_svd_matrices(self, elementaryMatrices: np.ndarray, singularValues: np.ndarray, limit: int) -> np.ndarray:
-        values = ((singularValues ** 2)/sum(singularValues **2 ))*100
+    def filter_svd_matrices(self, elementaryMatrices: np.ndarray, singularValues: np.ndarray, informationThreshold: Optional[float] = .95) -> np.ndarray:
+        values = ((singularValues ** 2)/sum(singularValues **2 ))
 
-        print(elementaryMatrices)
         information = 0
         filteredMatrix = None 
         for i in range(len(elementaryMatrices)):
-            if information >= limit:
+            if information >= informationThreshold:
                 break
             if information == 0:
                 filteredMatrix = elementaryMatrices[i]
@@ -66,10 +66,79 @@ class AnalysisMethods(AnalysisToolKit):
 
         return filteredMatrix
 
-    def run_regression(self, features: np.ndarray, labels: np.ndarray):
+    def run_regression(self, features: np.ndarray, labels: np.ndarray, transposeFeatures: Optional[bool] = True, intercept: Optional[bool] = False):
+        if transposeFeatures:
+            features = t(features)
+
+        reg = LinearRegression(fit_intercept = intercept).fit(features, labels, )
+        returnObj = {
+            'coefficients':reg.coef_
+        }
+        if intercept:
+            returnObj['intercept'] = reg.intercept_
+        returnObj['model'] = reg
+
+        return returnObj
+
+
+class SpectrumAnalysis(MSSA, AnalysisMethods):
+    
+    def __init__(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95):
+        self.data = data 
+        self.L = L 
+        self.lookBack = lookBack 
+        self.informationThreshold = informationThreshold
+
+    def create_page_matrix(self, data: np.ndarray, L: int, lookBack: int):
+        if lookBack % L != 0:
+            logging.critical(f"Lookback: {lookBack} not divisible by {L}")
+            return None
+            
+        K = lookBack - L + 1
+        data = data[-lookBack:]
+        page_matrix = np.column_stack([data[i:i+L] for i in range(0, K, L)])
+        return page_matrix
+
+    def concat_matrices(self, baseMatrix: np.ndarray, additionalMatrix: np.ndarray) -> np.ndarray:
+        return np.column_stack((baseMatrix, additionalMatrix))
+
+    def create_hsvt_matrix(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95):
+        
+        ### Clean Data
+
+        hsvt_matrix = None
+        self.columns = data.columns 
+        for i in range(len(self.columns)):
+            page_matrix = self.create_page_matrix(np.array(data[self.columns[i]]), L, lookBack)
+            svd_proceedure = self.calculate_svd(page_matrix)
+            filtered = self.filter_svd_matrices(svd_proceedure['elementary_matrices'], svd_proceedure['singular_values'])
+
+            if i == 0:
+                hsvt_matrix = filtered
+
+            else:
+                hsvt_matrix = self.concat_matrices(hsvt_matrix, filtered)
+
+        return hsvt_matrix
+
+    def create_labels_features(self, hsvtMatrix: np.ndarray):
+        num_rows = self.calculate_num_rows(hsvtMatrix)
+        labels = hsvtMatrix[num_rows-1,:]
+        features = hsvtMatrix[:num_rows-1,:]
+
+        return {
+            'labels':labels,
+            'features':features
+        }
+
+    def learn_linear_model(self, labels: np.ndarray, features: np.ndarray):
+        print(features)
+        print(t(features))
+        print(features)
+        return self.run_regression(features = features, labels = labels)
+
+    def predict(self, learned_params: np.ndarray, predictors: np.ndarray):
         pass
-
-
 
 
 class GerberStatistic(Gerber, AnalysisMethods):

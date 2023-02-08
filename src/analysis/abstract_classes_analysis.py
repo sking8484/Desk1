@@ -31,13 +31,13 @@ class AnalysisToolKit(ABC):
         pass
 
     @abstractmethod
-    def run_regression(self, features: np.ndarray, labels: np.ndarray):
+    def run_regression(self, features: np.ndarray, labels: np.ndarray, transposeFeatures: Optional[bool] = True, intercept: Optional[bool] = False):
         pass
 
 class MSSA(ABC):
     
     @abstractmethod
-    def __init__(self, data: pd.DataFrame, L: int, lookBack: int, pcaMax: float):
+    def __init__(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95):
         pass 
 
     @abstractmethod
@@ -53,7 +53,11 @@ class MSSA(ABC):
         pass
 
     @abstractmethod
-    def seperate_labels(self, hsvtMatrix: np.ndarray):
+    def create_labels_features(self, hsvtMatrix: np.ndarray):
+        pass
+
+    @abstractmethod
+    def learn_linear_model(self, labels: np.ndarray, features: np.ndarray):
         pass
 
     @abstractmethod

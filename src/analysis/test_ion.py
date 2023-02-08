@@ -2,7 +2,7 @@ import unittest
 from analysis import ion 
 import pandas as pd
 import numpy as np
-from analysis.ion import AnalysisMethods, GerberStatistic
+from analysis.ion import AnalysisMethods, GerberStatistic, SpectrumAnalysis
 from numpy import transpose as t
 from sklearn.decomposition import PCA
 
@@ -57,11 +57,92 @@ class TestAnalysisMethods(unittest.TestCase):
                             ])
 
         svd_proc = methods.calculate_svd(matrix)
-        filtered_matrix = methods.filter_svd_matrices(svd_proc['elementary_matrices'], svd_proc['singular_values'], 95)
+        filtered_matrix = methods.filter_svd_matrices(svd_proc['elementary_matrices'], svd_proc['singular_values'], .95)
         expected = svd_proc['elementary_matrices'][0] + svd_proc['elementary_matrices'][1]
         self.assertEqual(filtered_matrix.tolist(), expected.tolist())
 
+    def test_run_regression(self):
+        
+        methods = AnalysisMethods()
+        X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+        y = np.dot(X, np.array([1, 2])) + 3 
 
+        modelObj = methods.run_regression(X, y, False, True)
+        self.assertEquals(np.round(modelObj['coefficients'], 0).tolist(), np.array([1., 2.]).tolist())
+
+class TestSpectrumAnalysis(unittest.TestCase):
+    
+    singleColumn = np.arange(10)
+    data = t(np.array([np.arange(10), np.arange(10), np.arange(10)]))
+    df3 = pd.DataFrame(data)
+
+    def test_init(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        self.assertIsInstance(analysis, SpectrumAnalysis)
+
+    def test_create_page_matrix(self):
+        
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        matrix = analysis.create_page_matrix(self.singleColumn, 2, 10)
+        expected = np.array([
+            [0, 2, 4, 6, 8],
+            [1, 3, 5, 7, 9]
+        ])
+        self.assertEquals(matrix.tolist(), expected.tolist())
+
+    def test_concat_matrices(self):
+        base = np.array([
+                            [1, 2, 3],
+                            [4, 5, 6]
+                        ])
+        additional = np.array([
+                                  [7, 8, 9],
+                                  [10, 11, 12]
+                              ])
+
+        expected = np.array([
+                                [1, 2, 3, 7, 8, 9],
+                                [4, 5, 6, 10, 11, 12]
+                            ])
+
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        concated = analysis.concat_matrices(base, additional)
+        self.assertEquals(concated.tolist(), expected.tolist())
+
+    def test_create_hsvt_matrix(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        hsvt_matrix = analysis.create_hsvt_matrix(self.df3, 2, 10)
+
+        self.assertEquals(hsvt_matrix.shape, (2, 15))
+
+    def test_create_labels_features(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        data = np.array([
+                            [1, 3, 5],
+                            [2, 4, 6],
+                            [3, 5, 7]
+                        ])
+        labels_features = analysis.create_labels_features(data)
+        expected_features = np.array([
+                                       [1, 3, 5],
+                                       [2, 4, 6]
+                                   ])
+
+        expected_labels = np.array([3, 5, 7])
+        self.assertEquals(labels_features['labels'].tolist(), expected_labels.tolist())
+        self.assertEquals(labels_features['features'].tolist(), expected_features.tolist())
+
+    def test_learn_linear_model(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        data = np.array([
+                            [1, 3, 5],
+                            [2, 4, 6],
+                            [3, 5, 7]
+                        ])
+        labels_features = analysis.create_labels_features(data)
+        model = analysis.learn_linear_model(labels = labels_features['labels'], features = labels_features['features'])
+        print(model)
+        
 class TestGerberStatistic(unittest.TestCase):
 
     pandas_data = pd.DataFrame(
