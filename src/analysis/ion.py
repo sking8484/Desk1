@@ -134,7 +134,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
         for i in range(len(self.columns)):
             page_matrix = self.create_page_matrix(np.array(data[self.columns[i]]), L, lookBack)
             svd_proceedure = self.calculate_svd(page_matrix)
-            filtered = self.filter_svd_matrices(svd_proceedure['elementary_matrices'], svd_proceedure['singular_values'])
+            filtered = self.filter_svd_matrices(svd_proceedure['elementary_matrices'], svd_proceedure['singular_values'], informationThreshold = informationThreshold)
 
             if i == 0:
                 hsvt_matrix = filtered

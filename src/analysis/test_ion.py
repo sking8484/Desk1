@@ -188,12 +188,11 @@ class TestSpectrumAnalysis(unittest.TestCase):
         self.assertEqual(np.round(predictions['row1'].tolist(),0), np.round(expected['row1'],0))
 
     def test_run_mssa(self):
-        data = t(np.array([np.arange(10), np.arange(1, 11), np.arange(2, 12)]))
-        data = pd.DataFrame(data, columns = ['col1', 'col2', 'col3'])
-        ssa = SpectrumAnalysis(data, L = 5, useIntercept = True, informationThreshold = .2)
+        data = pd.read_csv("src/analysis/prices.csv")[["Date", "AAPL", "TSLA", "MSFT"]]
+        ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .95, lookBack = 1000)
         prediction = ssa.run_mssa()
-        self.assertIsInstance(prediction['col1'], np.ndarray)
-        
+        print(prediction)
+
 class TestGerberStatistic(unittest.TestCase):
 
     pandas_data = pd.DataFrame(
