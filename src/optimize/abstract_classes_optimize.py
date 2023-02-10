@@ -13,6 +13,10 @@ class Optimizer(ABC):
         pass
 
     @abstractmethod
+    def find_date_column(self, data: pd.DataFrame) -> str:
+        pass
+
+    @abstractmethod
     def cleanData(self) -> pd.DataFrame:
         pass 
 

@@ -22,6 +22,18 @@ The ion class is Desk1's main tool for analyzing data. This is where many of Des
 def test_setup():
     print("SETUP")
 
+class QuantTools(QuantMethods):
+    
+    def __init__(self, data: pd.DataFrame):
+        self.data = data 
+    
+    def get_gerber(self, Q: int) -> Gerber:
+        return GerberStatistic(data = self.data, Q = Q)
+
+    def get_mssa(self, L:int, lookBack: Optional[int] = 0, informationThreshold: Optional[float] = .95, useIntercept: Optional[bool] = False) -> MSSA:
+        return SpectrumAnalysis(data = self.data, L = L, lookBack = lookBack, informationThreshold = informationThreshold, useIntercept = useIntercept)
+
+    
 class AnalysisMethods(AnalysisToolKit):
     
     def calculate_num_rows(self, data: np.ndarray) -> int:
@@ -160,13 +172,20 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
     def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
         
         predictions = {}
+        curr_date = datetime.datetime.today().strftime("%Y-%m-%d")
+        predictions[curr_date] = {}
         for predictor in predictors:
             features = predictors[predictor]
             prediction = model.predict(features)
-            predictions[predictor] = prediction
+            predictions[curr_date][predictor] = prediction[0]
 
         return predictions
 
+    def format_return_data(self, predictions: dict[str, np.ndarray]) -> pd.DataFrame:
+        df_predictions = pd.DataFrame.from_dict(predictions, orient = 'index').reset_index().rename(columns = {'index':'date'})
+        formatted_predictions = pd.melt(df_predictions, id_vars = ['date'], var_name = 'symbol')
+        return formatted_predictions
+        
     def run_mssa(self) -> pd.DataFrame:
         data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True)
         prediction_features = self.create_prediction_features(data, self.L)
@@ -176,7 +195,8 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
         features = labels_features_dict['features']
         linear_model = self.learn_linear_model(labels = labels, features = features, intercept = self.useIntercept)
         predictions = self.predict(linear_model.model, predictors = prediction_features)
-        return predictions
+        formatted_predictions = self.format_return_data(predictions)
+        return formatted_predictions
         
 
 class GerberStatistic(Gerber, AnalysisMethods):

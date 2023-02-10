@@ -2,10 +2,24 @@ import unittest
 from analysis import ion 
 import pandas as pd
 import numpy as np
-from analysis.ion import AnalysisMethods, GerberStatistic, SpectrumAnalysis
+from analysis.ion import AnalysisMethods, GerberStatistic, SpectrumAnalysis, QuantTools
 from numpy import transpose as t
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression
+import datetime
+
+class TestQuantTools(unittest.TestCase):
+    data = pd.DataFrame(data = np.array([np.arange(10), np.arange(10)]))
+    Q = .5
+    L = 5
+    lookBack = 10
+    def test_get_gerber(self):
+        quanttools = QuantTools(data = self.data)
+        self.assertIsInstance(quanttools.get_gerber(self.Q), GerberStatistic)
+
+    def test_get_mssa(self):
+        quanttools = QuantTools(data = self.data)
+        self.assertIsInstance(quanttools.get_mssa(L = self.L), SpectrumAnalysis)
 
 class TestAnalysisMethods(unittest.TestCase):
     
@@ -185,7 +199,8 @@ class TestSpectrumAnalysis(unittest.TestCase):
         }
         analysis = SpectrumAnalysis(self.df3, 2, 10)
         predictions = analysis.predict(reg, predictors)
-        self.assertEqual(np.round(predictions['row1'].tolist(),0), np.round(expected['row1'],0))
+        today = datetime.datetime.today().strftime("%Y-%m-%d")
+        self.assertEqual(np.round(predictions[today]['row1'].tolist(),0), np.round(expected['row1'],0))
 
     def test_run_mssa(self):
         data = pd.read_csv("src/analysis/prices.csv")[["Date", "AAPL", "TSLA", "MSFT"]]

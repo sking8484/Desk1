@@ -80,6 +80,14 @@ class MSSA(ABC):
     def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
         pass
 
+    @abstractmethod
+    def format_return_data(self, data: dict[str, np.ndarray]) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def run_mssa(self) -> pd.DataFrame:
+        pass
+
     
 class Gerber(ABC):
     
@@ -133,6 +141,6 @@ class QuantMethods(ABC):
     def get_gerber(self, Q: int) -> Gerber:
         pass
 
-    #@abstractmethod
-    #def get_mahalanobis(self) -> Mahalanobis:
-    #    pass
+    @abstractmethod
+    def get_mssa(self, L:int, lookBack: Optional[int] = 0, informationThreshold: Optional[float] = .95, useIntercept: Optional[bool] = False) -> MSSA:
+        pass
