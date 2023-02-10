@@ -10,6 +10,7 @@ from inspect import trace
 import numpy as np
 import traceback
 import abstract_classes_db_link
+import logging
 
 """TODO - Create ABC of dataLink. This will allow for better testing"""
 
@@ -62,7 +63,7 @@ class DataLink(abstract_classes_db_link.DataAPI):
             self.create_table(tableName, dataFrame)
 
         except Exception as e:
-            print("Table Exists")
+            logging.warning("Table Exists")
 
         columnString = ""
         valuesString = ""

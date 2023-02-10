@@ -13,8 +13,9 @@ from datetime import date
 import math
 import time
 from warnings import simplefilter
-
-from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods
+from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods, MSSA, RegressionOutput
+from sklearn.linear_model import LinearRegression
+import logging
 """
 The ion class is Desk1's main tool for analyzing data. This is where many of Desk1's trading signal's will be created.
 """
@@ -34,6 +35,149 @@ class AnalysisMethods(AnalysisToolKit):
 
     def divide_matrices(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
         return numerator / denominator
+
+    def calculate_svd(self, matrix: np.ndarray) -> dict[str, np.ndarray]:
+        d = np.linalg.matrix_rank(matrix)
+
+        U, Sigma, V = np.linalg.svd(matrix)
+        V = t(V)
+
+        X_elem = np.array([ Sigma[i] * np.outer(U[:,i], V[:,i]) for i in range(0,d)])
+
+        return {
+            "elementary_matrices":X_elem,
+            "singular_values":Sigma
+        }
+
+    def filter_svd_matrices(self, elementaryMatrices: np.ndarray, singularValues: np.ndarray, informationThreshold: Optional[float] = .95) -> np.ndarray:
+        values = ((singularValues ** 2)/sum(singularValues **2 ))
+
+        information = 0
+        filteredMatrix = None 
+        for i in range(len(elementaryMatrices)):
+            if information >= informationThreshold:
+                break
+            if information == 0:
+                filteredMatrix = elementaryMatrices[i]
+            else:
+                filteredMatrix = filteredMatrix + elementaryMatrices[i]
+
+            information += values[i]
+
+        return filteredMatrix
+
+    def run_regression(self, features: np.ndarray, labels: np.ndarray, transposeFeatures: Optional[bool] = True, intercept: Optional[bool] = False) -> RegressionOutput:
+        if transposeFeatures:
+            features = t(features)
+
+        reg = LinearRegression(fit_intercept = intercept).fit(features, labels, )
+        returnObj = RegressionOutput(coefficients = reg.coef_, model = reg)
+        if intercept:
+            returnObj.intercept = reg.intercept_
+
+        return returnObj
+
+    def clean_data(self, data: pd.DataFrame, lookBack: Optional[int] = 0, removeNullCols: Optional[bool] = False, removeDateColumn: Optional[bool] = False) -> pd.DataFrame:
+        if lookBack != 0:
+            data = data[-lookBack:]
+
+        if removeNullCols:
+            data = data.replace([np.inf, -np.inf], np.nan).dropna(axis=1)
+
+
+        if removeDateColumn:
+            if 'date' in data.columns:
+                data.drop(columns = ['date'], inplace = True)
+            elif 'Date' in data.columns:
+                data.drop(columns = ['Date'], inplace=True)
+
+        return data
+                    
+
+class SpectrumAnalysis(MSSA, AnalysisMethods):
+    
+    def __init__(self, data: pd.DataFrame, L: int, lookBack: Optional[int] = 0, informationThreshold: Optional[float] = .95, useIntercept: Optional[bool] = False):
+        self.data = data 
+        self.L = L 
+        if lookBack == 0:
+            lookBack = self.calculate_num_rows(data.to_numpy())
+        self.lookBack = lookBack 
+        self.informationThreshold = informationThreshold
+        self.useIntercept = useIntercept
+
+    def create_prediction_features(self, data: pd.DataFrame, L: int) -> dict[str, np.ndarray]:
+        returnObj = {}
+        for column in data:
+            returnObj[column] = np.array([data[column][-L + 1:].to_numpy()])
+
+        return returnObj
+
+    def create_page_matrix(self, data: np.ndarray, L: int, lookBack: int):
+        if lookBack % L != 0:
+            logging.critical(f"Lookback: {lookBack} not divisible by {L}")
+            return None
+            
+        K = lookBack - L + 1
+        data = data[-lookBack:]
+        page_matrix = np.column_stack([data[i:i+L] for i in range(0, K, L)])
+        return page_matrix
+
+    def concat_matrices(self, baseMatrix: np.ndarray, additionalMatrix: np.ndarray) -> np.ndarray:
+        return np.column_stack((baseMatrix, additionalMatrix))
+
+    def create_hsvt_matrix(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95) -> np.ndarray:
+        
+        ### Clean Data
+
+        hsvt_matrix = None
+        self.columns = data.columns 
+        for i in range(len(self.columns)):
+            page_matrix = self.create_page_matrix(np.array(data[self.columns[i]]), L, lookBack)
+            svd_proceedure = self.calculate_svd(page_matrix)
+            filtered = self.filter_svd_matrices(svd_proceedure['elementary_matrices'], svd_proceedure['singular_values'])
+
+            if i == 0:
+                hsvt_matrix = filtered
+
+            else:
+                hsvt_matrix = self.concat_matrices(hsvt_matrix, filtered)
+
+        return hsvt_matrix
+
+    def create_labels_features(self, hsvtMatrix: np.ndarray) -> dict[str, np.ndarray]:
+        num_rows = self.calculate_num_rows(hsvtMatrix)
+        labels = hsvtMatrix[num_rows-1,:]
+        features = hsvtMatrix[:num_rows-1,:]
+
+        return {
+            'labels':labels,
+            'features':features
+        }
+
+    def learn_linear_model(self, labels: np.ndarray, features: np.ndarray, intercept: Optional[bool] = False):
+        return self.run_regression(features = features, labels = labels, intercept = intercept)
+
+    def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
+        
+        predictions = {}
+        for predictor in predictors:
+            features = predictors[predictor]
+            prediction = model.predict(features)
+            predictions[predictor] = prediction
+
+        return predictions
+
+    def run_mssa(self) -> pd.DataFrame:
+        data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True)
+        prediction_features = self.create_prediction_features(data, self.L)
+        hsvt_matrix = self.create_hsvt_matrix(data, self.L, lookBack = self.lookBack, informationThreshold = self.informationThreshold)
+        labels_features_dict = self.create_labels_features(hsvt_matrix)
+        labels = labels_features_dict['labels']
+        features = labels_features_dict['features']
+        linear_model = self.learn_linear_model(labels = labels, features = features, intercept = self.useIntercept)
+        predictions = self.predict(linear_model.model, predictors = prediction_features)
+        return predictions
+        
 
 class GerberStatistic(Gerber, AnalysisMethods):
     
@@ -141,73 +285,6 @@ class ion:
             dimensions M x M
 
         """
-
-    def getGerberMatrix(self, data:pd.DataFrame, Q:Optional[float]=.5) -> pd.DataFrame:
-        """
-        A method to return the Gerber (modified COV) matrix using data
-        ...
-
-        Attributes
-        ----------
-        data: A numerical Pandas DataFrame (excludes dates, ID or anything of that variety)
-            Data must be a percentage change dataframe.
-            DO NOT INCLUDE DATE COLUMN
-
-        Q: a fraction from (0,1]
-            Indicating how many standard deviations
-                We want to start counting comovements
-        """
-
-
-
-        data = data.copy()
-
-        T = len(data)
-        diag = np.diag(np.asarray(data.std()))
-
-        upperLimit = Q*data.std()
-        lowerLimit = -1*Q*data.std()
-
-        upperMatrix = data - upperLimit
-        lowerMatrix = data - lowerLimit
-
-        upperMatrix = np.asmatrix(upperMatrix)
-        lowerMatrix = np.asmatrix(lowerMatrix)
-
-        upperMatrix[upperMatrix >= 0] = 1
-        upperMatrix[upperMatrix < 0] = 0
-
-        lowerMatrix[lowerMatrix <= 0] = -1
-        lowerMatrix[lowerMatrix > 0] = 0
-        lowerMatrix[lowerMatrix == -1] = 1
-
-        """
-        General idea of mid matrix is that if both
-        upper and lower are 0 then it is a mid point
-        but we need to add 1 to this because when we take dot product
-        if we have a 1 and a 0 (above/below and inbetween) we get an inbetween
-        this is incorrect
-        """
-
-        midMatrix = upperMatrix + lowerMatrix
-        midMatrix = midMatrix + 1
-        midMatrix[midMatrix == 2] = 0
-
-        N_UU = t(upperMatrix) @ upperMatrix
-        N_DD = t(lowerMatrix) @ lowerMatrix
-        N_NN = t(midMatrix) @ midMatrix
-        N_UD = t(upperMatrix) @ lowerMatrix
-        N_DU = t(lowerMatrix) @ upperMatrix
-
-        denom_mat = np.copy(N_NN)
-        denom_mat[denom_mat > -100000] = T
-        denom_mat = denom_mat - N_NN
-        num_mat = N_UU + N_DD - N_UD - N_DU
-
-        g = np.divide(num_mat, denom_mat)
-        G = diag @ g @ diag
-
-        return pd.DataFrame(G, index = data.columns, columns = data.columns)
 
     def getOptimalWeights(self,data:pd.DataFrame, delta:Optional[float] = 50, leverageAmt: Optional[float] = 1.0, gerber:Optional[bool] = True, predictions: Optional[pd.DataFrame] = None, usePredictions: Optional[bool] = False) -> pd.DataFrame:
         """Imports here due to inability to solve enviornment errors"""

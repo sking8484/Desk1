@@ -2,8 +2,10 @@ import unittest
 from analysis import ion 
 import pandas as pd
 import numpy as np
-from analysis.ion import AnalysisMethods, GerberStatistic
+from analysis.ion import AnalysisMethods, GerberStatistic, SpectrumAnalysis
 from numpy import transpose as t
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
 
 class TestAnalysisMethods(unittest.TestCase):
     
@@ -35,6 +37,163 @@ class TestAnalysisMethods(unittest.TestCase):
                [3. , 3.5, 4. ]])
         self.assertEqual(methods.divide_matrices(x1, x2).tolist(), output.tolist())
 
+    def test_calculate_svd(self):
+        methods = AnalysisMethods()
+        matrix = np.array([
+                                [1, 2, 3],
+                                [3, 2, 6],
+                                [7, 24, 2]
+                            ])
+
+        svd_proc = methods.calculate_svd(matrix)
+        self.assertTrue(np.allclose(matrix, svd_proc['elementary_matrices'].sum(axis=0), atol=1e-10))
+
+    def test_filter_svd_matrices(self):
+        
+        methods = AnalysisMethods()
+        matrix = np.array([
+                                [1, 2, 3],
+                                [3, 2, 6],
+                                [7, 24, 2]
+                            ])
+
+        svd_proc = methods.calculate_svd(matrix)
+        filtered_matrix = methods.filter_svd_matrices(svd_proc['elementary_matrices'], svd_proc['singular_values'], .95)
+        expected = svd_proc['elementary_matrices'][0] + svd_proc['elementary_matrices'][1]
+        self.assertEqual(filtered_matrix.tolist(), expected.tolist())
+
+    def test_run_regression(self):
+        
+        methods = AnalysisMethods()
+        X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+        y = np.dot(X, np.array([1, 2])) + 3 
+
+        modelObj = methods.run_regression(X, y, False, True)
+        self.assertEquals(np.round(modelObj.coefficients, 0).tolist(), np.array([1., 2.]).tolist())
+
+    def test_clean_data(self):
+        data = [
+            [1, 2, 3],
+            [4, 5, np.nan],
+            [5, 7, 9]
+        ]
+        data = pd.DataFrame(data, columns = ['date', 'col1', 'col2'])
+        methods = AnalysisMethods()
+        expected_data = [
+            [5],
+            [7]
+        ]
+        expected = pd.DataFrame(expected_data, columns = ['col1'])
+        cleaned_data = methods.clean_data(data, 2, removeNullCols = True, removeDateColumn = True)
+        self.assertEquals(cleaned_data.columns, ['col1'])
+        self.assertEquals(cleaned_data.to_numpy().tolist(), np.array(expected_data).tolist())
+
+class TestSpectrumAnalysis(unittest.TestCase):
+    
+    singleColumn = np.arange(10)
+    data = t(np.array([np.arange(10), np.arange(10), np.arange(10)]))
+    df3 = pd.DataFrame(data, columns = ['col1', 'col2', 'col3'])
+
+    def test_init(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        self.assertIsInstance(analysis, SpectrumAnalysis)
+
+    def test_create_prediction_features(self):
+        analysis = SpectrumAnalysis(self.df3, 5, 10)
+        expected_array = np.array([6, 7, 8, 9])
+        expected = {
+            'col1': [expected_array.tolist()],
+            'col2': [expected_array.tolist()],
+            'col3': [expected_array.tolist()]
+        }
+        output = analysis.create_prediction_features(self.df3, 5)
+        for key in output:
+            output[key] = output[key].tolist()
+        self.assertEquals(output, expected)
+
+    def test_create_page_matrix(self):
+        
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        matrix = analysis.create_page_matrix(self.singleColumn, 2, 10)
+        expected = np.array([
+            [0, 2, 4, 6, 8],
+            [1, 3, 5, 7, 9]
+        ])
+        self.assertEquals(matrix.tolist(), expected.tolist())
+
+    def test_concat_matrices(self):
+        base = np.array([
+                            [1, 2, 3],
+                            [4, 5, 6]
+                        ])
+        additional = np.array([
+                                  [7, 8, 9],
+                                  [10, 11, 12]
+                              ])
+
+        expected = np.array([
+                                [1, 2, 3, 7, 8, 9],
+                                [4, 5, 6, 10, 11, 12]
+                            ])
+
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        concated = analysis.concat_matrices(base, additional)
+        self.assertEquals(concated.tolist(), expected.tolist())
+
+    def test_create_hsvt_matrix(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        hsvt_matrix = analysis.create_hsvt_matrix(self.df3, 2, 10)
+
+        self.assertEquals(hsvt_matrix.shape, (2, 15))
+
+    def test_create_labels_features(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        data = np.array([
+                            [1, 3, 5],
+                            [2, 4, 6],
+                            [3, 5, 7]
+                        ])
+        labels_features = analysis.create_labels_features(data)
+        expected_features = np.array([
+                                       [1, 3, 5],
+                                       [2, 4, 6]
+                                   ])
+
+        expected_labels = np.array([3, 5, 7])
+        self.assertEquals(labels_features['labels'].tolist(), expected_labels.tolist())
+        self.assertEquals(labels_features['features'].tolist(), expected_features.tolist())
+
+    def test_learn_linear_model(self):
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        data = np.array([
+                            [1, 3, 5],
+                            [2, 4, 6],
+                            [3, 5, 7]
+                        ])
+        labels_features = analysis.create_labels_features(data)
+        model = analysis.learn_linear_model(labels = labels_features['labels'], features = labels_features['features'])
+
+    def test_predict(self):
+        X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+        y = np.dot(X, np.array([1, 2])) + 3 
+        expected = {
+            'row1':np.array([16.]).tolist()
+        }
+        reg = LinearRegression().fit(X, y)
+        predictors = {
+            'row1':np.array([[3, 5]])
+        }
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        predictions = analysis.predict(reg, predictors)
+        self.assertEqual(np.round(predictions['row1'].tolist(),0), np.round(expected['row1'],0))
+
+    def test_run_mssa(self):
+        data = t(np.array([np.arange(10), np.arange(1, 11), np.arange(2, 12)]))
+        data = pd.DataFrame(data, columns = ['col1', 'col2', 'col3'])
+        ssa = SpectrumAnalysis(data, L = 5, useIntercept = True, informationThreshold = .2)
+        prediction = ssa.run_mssa()
+        self.assertIsInstance(prediction['col1'], np.ndarray)
+        
 class TestGerberStatistic(unittest.TestCase):
 
     pandas_data = pd.DataFrame(
@@ -210,7 +369,6 @@ class TestGerberStatistic(unittest.TestCase):
 
         stat = gerber_method.get_gerber_statistic()
 
-        print(stat)
 
 if __name__ == '__main__':
     unittest.main()
