@@ -5,6 +5,7 @@ import numpy as np
 from analysis.ion import AnalysisMethods, GerberStatistic, SpectrumAnalysis
 from numpy import transpose as t
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
 
 class TestAnalysisMethods(unittest.TestCase):
     
@@ -68,17 +69,47 @@ class TestAnalysisMethods(unittest.TestCase):
         y = np.dot(X, np.array([1, 2])) + 3 
 
         modelObj = methods.run_regression(X, y, False, True)
-        self.assertEquals(np.round(modelObj['coefficients'], 0).tolist(), np.array([1., 2.]).tolist())
+        self.assertEquals(np.round(modelObj.coefficients, 0).tolist(), np.array([1., 2.]).tolist())
+
+    def test_clean_data(self):
+        data = [
+            [1, 2, 3],
+            [4, 5, np.nan],
+            [5, 7, 9]
+        ]
+        data = pd.DataFrame(data, columns = ['date', 'col1', 'col2'])
+        methods = AnalysisMethods()
+        expected_data = [
+            [5],
+            [7]
+        ]
+        expected = pd.DataFrame(expected_data, columns = ['col1'])
+        cleaned_data = methods.clean_data(data, 2, removeNullCols = True, removeDateColumn = True)
+        self.assertEquals(cleaned_data.columns, ['col1'])
+        self.assertEquals(cleaned_data.to_numpy().tolist(), np.array(expected_data).tolist())
 
 class TestSpectrumAnalysis(unittest.TestCase):
     
     singleColumn = np.arange(10)
     data = t(np.array([np.arange(10), np.arange(10), np.arange(10)]))
-    df3 = pd.DataFrame(data)
+    df3 = pd.DataFrame(data, columns = ['col1', 'col2', 'col3'])
 
     def test_init(self):
         analysis = SpectrumAnalysis(self.df3, 2, 10)
         self.assertIsInstance(analysis, SpectrumAnalysis)
+
+    def test_create_prediction_features(self):
+        analysis = SpectrumAnalysis(self.df3, 5, 10)
+        expected_array = np.array([6, 7, 8, 9])
+        expected = {
+            'col1': [expected_array.tolist()],
+            'col2': [expected_array.tolist()],
+            'col3': [expected_array.tolist()]
+        }
+        output = analysis.create_prediction_features(self.df3, 5)
+        for key in output:
+            output[key] = output[key].tolist()
+        self.assertEquals(output, expected)
 
     def test_create_page_matrix(self):
         
@@ -141,7 +172,27 @@ class TestSpectrumAnalysis(unittest.TestCase):
                         ])
         labels_features = analysis.create_labels_features(data)
         model = analysis.learn_linear_model(labels = labels_features['labels'], features = labels_features['features'])
-        print(model)
+
+    def test_predict(self):
+        X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+        y = np.dot(X, np.array([1, 2])) + 3 
+        expected = {
+            'row1':np.array([16.]).tolist()
+        }
+        reg = LinearRegression().fit(X, y)
+        predictors = {
+            'row1':np.array([[3, 5]])
+        }
+        analysis = SpectrumAnalysis(self.df3, 2, 10)
+        predictions = analysis.predict(reg, predictors)
+        self.assertEqual(np.round(predictions['row1'].tolist(),0), np.round(expected['row1'],0))
+
+    def test_run_mssa(self):
+        data = t(np.array([np.arange(10), np.arange(1, 11), np.arange(2, 12)]))
+        data = pd.DataFrame(data, columns = ['col1', 'col2', 'col3'])
+        ssa = SpectrumAnalysis(data, L = 5, useIntercept = True, informationThreshold = .2)
+        prediction = ssa.run_mssa()
+        self.assertIsInstance(prediction['col1'], np.ndarray)
         
 class TestGerberStatistic(unittest.TestCase):
 

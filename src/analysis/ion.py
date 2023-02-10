@@ -13,7 +13,7 @@ from datetime import date
 import math
 import time
 from warnings import simplefilter
-from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods, MSSA
+from abstract_classes_analysis import AnalysisToolKit, Gerber, QuantMethods, MSSA, RegressionOutput
 from sklearn.linear_model import LinearRegression
 import logging
 """
@@ -66,28 +66,51 @@ class AnalysisMethods(AnalysisToolKit):
 
         return filteredMatrix
 
-    def run_regression(self, features: np.ndarray, labels: np.ndarray, transposeFeatures: Optional[bool] = True, intercept: Optional[bool] = False):
+    def run_regression(self, features: np.ndarray, labels: np.ndarray, transposeFeatures: Optional[bool] = True, intercept: Optional[bool] = False) -> RegressionOutput:
         if transposeFeatures:
             features = t(features)
 
         reg = LinearRegression(fit_intercept = intercept).fit(features, labels, )
-        returnObj = {
-            'coefficients':reg.coef_
-        }
+        returnObj = RegressionOutput(coefficients = reg.coef_, model = reg)
         if intercept:
-            returnObj['intercept'] = reg.intercept_
-        returnObj['model'] = reg
+            returnObj.intercept = reg.intercept_
 
         return returnObj
 
+    def clean_data(self, data: pd.DataFrame, lookBack: Optional[int] = 0, removeNullCols: Optional[bool] = False, removeDateColumn: Optional[bool] = False) -> pd.DataFrame:
+        if lookBack != 0:
+            data = data[-lookBack:]
+
+        if removeNullCols:
+            data = data.replace([np.inf, -np.inf], np.nan).dropna(axis=1)
+
+
+        if removeDateColumn:
+            if 'date' in data.columns:
+                data.drop(columns = ['date'], inplace = True)
+            elif 'Date' in data.columns:
+                data.drop(columns = ['Date'], inplace=True)
+
+        return data
+                    
 
 class SpectrumAnalysis(MSSA, AnalysisMethods):
     
-    def __init__(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95):
+    def __init__(self, data: pd.DataFrame, L: int, lookBack: Optional[int] = 0, informationThreshold: Optional[float] = .95, useIntercept: Optional[bool] = False):
         self.data = data 
         self.L = L 
+        if lookBack == 0:
+            lookBack = self.calculate_num_rows(data.to_numpy())
         self.lookBack = lookBack 
         self.informationThreshold = informationThreshold
+        self.useIntercept = useIntercept
+
+    def create_prediction_features(self, data: pd.DataFrame, L: int) -> dict[str, np.ndarray]:
+        returnObj = {}
+        for column in data:
+            returnObj[column] = np.array([data[column][-L + 1:].to_numpy()])
+
+        return returnObj
 
     def create_page_matrix(self, data: np.ndarray, L: int, lookBack: int):
         if lookBack % L != 0:
@@ -102,7 +125,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
     def concat_matrices(self, baseMatrix: np.ndarray, additionalMatrix: np.ndarray) -> np.ndarray:
         return np.column_stack((baseMatrix, additionalMatrix))
 
-    def create_hsvt_matrix(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95):
+    def create_hsvt_matrix(self, data: pd.DataFrame, L: int, lookBack: int, informationThreshold: Optional[float] = .95) -> np.ndarray:
         
         ### Clean Data
 
@@ -121,7 +144,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
 
         return hsvt_matrix
 
-    def create_labels_features(self, hsvtMatrix: np.ndarray):
+    def create_labels_features(self, hsvtMatrix: np.ndarray) -> dict[str, np.ndarray]:
         num_rows = self.calculate_num_rows(hsvtMatrix)
         labels = hsvtMatrix[num_rows-1,:]
         features = hsvtMatrix[:num_rows-1,:]
@@ -131,15 +154,30 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
             'features':features
         }
 
-    def learn_linear_model(self, labels: np.ndarray, features: np.ndarray):
-        print(features)
-        print(t(features))
-        print(features)
-        return self.run_regression(features = features, labels = labels)
+    def learn_linear_model(self, labels: np.ndarray, features: np.ndarray, intercept: Optional[bool] = False):
+        return self.run_regression(features = features, labels = labels, intercept = intercept)
 
-    def predict(self, learned_params: np.ndarray, predictors: np.ndarray):
-        pass
+    def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
+        
+        predictions = {}
+        for predictor in predictors:
+            features = predictors[predictor]
+            prediction = model.predict(features)
+            predictions[predictor] = prediction
 
+        return predictions
+
+    def run_mssa(self) -> pd.DataFrame:
+        data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True)
+        prediction_features = self.create_prediction_features(data, self.L)
+        hsvt_matrix = self.create_hsvt_matrix(data, self.L, lookBack = self.lookBack, informationThreshold = self.informationThreshold)
+        labels_features_dict = self.create_labels_features(hsvt_matrix)
+        labels = labels_features_dict['labels']
+        features = labels_features_dict['features']
+        linear_model = self.learn_linear_model(labels = labels, features = features, intercept = self.useIntercept)
+        predictions = self.predict(linear_model.model, predictors = prediction_features)
+        return predictions
+        
 
 class GerberStatistic(Gerber, AnalysisMethods):
     
