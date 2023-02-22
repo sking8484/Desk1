@@ -53,7 +53,7 @@ class MSSA(ABC):
         pass 
 
     @abstractmethod
-    def create_prediction_features(self, data: pd.DataFrame, L: int) -> dict[str, np.ndarray]:
+    def create_prediction_features(self, data: np.ndarray, columns: List[str], L: int, lookBack: int) -> dict[str, np.ndarray]:
         pass
 
     @abstractmethod

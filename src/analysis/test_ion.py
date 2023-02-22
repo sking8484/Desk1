@@ -114,16 +114,17 @@ class TestSpectrumAnalysis(unittest.TestCase):
 
     def test_create_prediction_features(self):
         analysis = SpectrumAnalysis(self.df3, 5, 10)
-        expected_array = np.array([6, 7, 8, 9])
-        expected = {
-            'col1': [expected_array.tolist()],
-            'col2': [expected_array.tolist()],
-            'col3': [expected_array.tolist()]
-        }
-        output = analysis.create_prediction_features(self.df3, 5)
-        for key in output:
-            output[key] = output[key].tolist()
-        self.assertEquals(output, expected)
+        data = np.transpose(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+                                     ]))
+        input_data = np.column_stack([data, data])
+        column_list = ['col_1', 'col_2']
+        L = 3
+        lookBack = 6
+
+        prediction_features = analysis.create_prediction_features(input_data, column_list, L, lookBack)
+        self.assertEquals(prediction_features['col_1'].tolist(), np.array([[5, 6]]).tolist())
 
     def test_create_page_matrix(self):
         
@@ -206,7 +207,6 @@ class TestSpectrumAnalysis(unittest.TestCase):
         data = pd.read_csv("src/analysis/prices.csv")[["Date", "AAPL", "TSLA", "MSFT"]]
         ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .95, lookBack = 1000)
         prediction = ssa.run_mssa()
-        print(prediction)
 
 class TestGerberStatistic(unittest.TestCase):
 

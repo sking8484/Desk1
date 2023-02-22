@@ -114,13 +114,16 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
         if lookBack == 0:
             lookBack = self.calculate_num_rows(data.to_numpy())
         self.lookBack = lookBack 
+        if self.lookBack % self.L != 0:
+            logging.critical("Lookback not divisible by L")
         self.informationThreshold = informationThreshold
         self.useIntercept = useIntercept
 
-    def create_prediction_features(self, data: pd.DataFrame, L: int) -> dict[str, np.ndarray]:
+    def create_prediction_features(self, data: np.ndarray, columns: list[str], L: int, lookBack: int) -> dict[str, np.ndarray]:
         returnObj = {}
-        for column in data:
-            returnObj[column] = np.array([data[column][-L + 1:].to_numpy()])
+        columnsPerSeries = int(lookBack / L)
+        for columnName, column in zip(columns, range(columnsPerSeries - 1, len(data[1]), columnsPerSeries)):
+            returnObj[columnName] = np.array([data[-L + 1:, column]])
 
         return returnObj
 
@@ -188,8 +191,8 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
         
     def run_mssa(self) -> pd.DataFrame:
         data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True)
-        prediction_features = self.create_prediction_features(data, self.L)
         hsvt_matrix = self.create_hsvt_matrix(data, self.L, lookBack = self.lookBack, informationThreshold = self.informationThreshold)
+        prediction_features = self.create_prediction_features(hsvt_matrix, data.columns, self.L, self.lookBack)
         labels_features_dict = self.create_labels_features(hsvt_matrix)
         labels = labels_features_dict['labels']
         features = labels_features_dict['features']
