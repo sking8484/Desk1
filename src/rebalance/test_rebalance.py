@@ -1,6 +1,5 @@
 import unittest
 from rebalance.rebalance import Rebalance, AlpacaLink, AlpacaOrderCreator 
-import boto3
 import json
 import alpaca_trade_api
 

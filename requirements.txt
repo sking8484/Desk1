@@ -10,7 +10,6 @@ charset-normalizer==2.1.1
 contourpy==1.0.7
 cvxopt==1.3.0
 cycler==0.11.0
-db-link==0.0.0
 deprecation==2.1.0
 fonttools==4.38.0
 frozenlist==1.3.3
