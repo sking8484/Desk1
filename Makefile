@@ -46,3 +46,9 @@ destroy:
 	for service in `cat $${SERVICE_LIST}`; do \
 		aws cloudformation delete-stack --stack-name $${service}-$(CFN_STACK_NAME); \
 	done
+
+start-database:
+	docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -e MYSQL_DATABASE=test -d -v mysql:/var/lib/mysql -p 3307:3306 mysql
+
+destroy-database:
+	docker rm -f some-mysql

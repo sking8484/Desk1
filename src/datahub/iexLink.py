@@ -1,7 +1,6 @@
 from csv import excel_tab
 from os import times
 from privateKeys.privateData import credentials
-from dataLink import dataLink
 import pandas as pd
 from datetime import date
 import requests
@@ -9,7 +8,6 @@ from datetime import datetime
 import time
 from iexDefinitions import iexFactors
 from pandas.tseries.offsets import *
-from dataLink import dataLink
 
 """
 Grab last item in stock table in order to get the date
@@ -19,13 +17,13 @@ then upload this to sql
 """
 
 class iexLink:
-    def __init__(self):
+    def __init__(self, dataLink):
         self.credents = credentials()
         self.token = self.credents.iexToken
         self.iexFactors = iexFactors
         self.BaseUrl = self.credents.iexBaseUrl
         self.version = "stable/"
-        #self.dataLink = dataLink(credents.credentials)
+        self.dataLink = dataLink(self.credents.credentials)
 
     def getFromDate(self, identifier:dict):
         try:
