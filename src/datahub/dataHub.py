@@ -3,7 +3,6 @@ from optparse import Values
 from threading import Timer
 import traceback
 import pandas as pd
-from dataLink import dataLink
 from iexLink import iexLink
 from privateKeys.privateData import credentials
 from pandas.tseries.offsets import *
@@ -12,18 +11,17 @@ from datetime import datetime, date
 from datetime import timedelta
 import time
 import threading
-from timeRules import TimeRules
 from iexDefinitions import iexFactors
 
 class dataHub:
-    def __init__(self):
-        self.TimeRules = TimeRules()
+    def __init__(self, dataLink):
         self.credents = credentials()
         self.factors = iexFactors
         self.token = self.credents.iexToken
-        self.iexLink = iexLink()
+        self.iexLink = iexLink(dataLink)
         self.mainStockTable = self.credents.mainStockTable
         self.mainFactorTable = self.credents.mainFactorTable
+        self.dataLink = dataLink
 
     def getBuyUniverse(self, table) -> list:
         if (table == self.mainStockTable):
@@ -69,39 +67,26 @@ class dataHub:
 
 
     def maintainUniverse(self) -> None:
-        lastUpdate = ""
+        self.dataLink = dataLink(self.credents.credentials)
+        lastUpdate = date.today().strftime("%Y-%m-%d")
+        try:
+            self.updateTimeSeriesData(self.mainStockTable)
+        except Exception as e:
+            print(traceback.print_exc())
 
-        while True:
-            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainUniverse']):
-                self.dataLink = dataLink(self.credents.credentials)
-                lastUpdate = date.today().strftime("%Y-%m-%d")
-                try:
-                    self.updateTimeSeriesData(self.mainStockTable)
-                except Exception as e:
-                    print(traceback.print_exc())
-
-                data = self.dataLink.returnTable(self.mainStockTable)
-                data.to_csv(self.credents.stockPriceFile,index=False)
-            else:
-                time.sleep(self.credents.sleepSeconds)
+        data = self.dataLink.returnTable(self.mainStockTable)
+        data.to_csv(self.credents.stockPriceFile,index=False)
 
     def maintainTopDownData(self) -> None:
 
-        lastUpdate = ""
+        self.dataLink = dataLink(self.credents.credentials)
+        topDownData = self.iexLink.countrySectorInfo(self.getBuyUniverse(self.mainStockTable))
 
-        while True:
-            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainTopDownData']):
-                lastUpdate = date.today().strftime("%Y-%m-%d")
-                self.dataLink = dataLink(self.credents.credentials)
-                topDownData = self.iexLink.countrySectorInfo(self.getBuyUniverse(self.mainStockTable))
-
-                try:
-                    self.dataLink.append(self.credents.stockInfoTable, topDownData)
-                except Exception as e:
-                    print(traceback.print_exc())
-                self.dataLink.closeConnection()
-            else:
-                time.sleep(self.credents.sleepSeconds)
+        try:
+            self.dataLink.append(self.credents.stockInfoTable, topDownData)
+        except Exception as e:
+            print(traceback.print_exc())
+        self.dataLink.closeConnection()
 
     def maintainFactors(self) -> None:
         lastUpdate = ""
@@ -122,7 +107,6 @@ class dataHub:
     def maintainData(self) -> None:
         t1 = threading.Thread(target = self.maintainUniverse).start()
         t2 = threading.Thread(target = self.maintainTopDownData).start()
-        t3 = threading.Thread(target = self.maintainFactors).start()
 
 
 
