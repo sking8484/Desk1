@@ -14,9 +14,8 @@ class TestDataLink(unittest.TestCase):
 
     @patch('db_link.db_link.sqlconnection.connect')
     def test_init(self, mockConnection):
-        link = DataLink({"darst":"darst"})
+        link = DataLink()
         mockConnection.assert_called_once()
-        mockConnection.assert_called_with(darst="darst", autocommit=True)
 
     @patch('db_link.db_link.sqlconnection.connect')
     def test_create_table(self, mockCursor):
@@ -25,7 +24,7 @@ class TestDataLink(unittest.TestCase):
         connection = mockCursor.return_value
         cursor = connection.cursor.return_value
 
-        link = DataLink({})
+        link = DataLink()
         link.create_table(self.TABLE_NAME, df)
 
         sql = f"CREATE TABLE IF NOT EXISTS {self.TABLE_NAME}(col1 TEXT, col_2 TEXT)"
@@ -40,7 +39,7 @@ class TestDataLink(unittest.TestCase):
         conn = mockConnection.return_value
         cursor = conn.cursor.return_value
 
-        link = DataLink({})
+        link = DataLink()
         link.append(self.TABLE_NAME, df)
 
         sql = f"INSERT INTO {self.TABLE_NAME} (col1, col_2) VALUES (%s, %s)"
@@ -63,7 +62,7 @@ class TestDataLink(unittest.TestCase):
         
         mockCreateTable.side_effect = KeyError('Foo')
 
-        link = DataLink({})
+        link = DataLink()
         link.append(self.TABLE_NAME, df)
 
         sql = f"INSERT INTO {self.TABLE_NAME} (col1, col_2) VALUES (%s, %s)"
@@ -80,7 +79,7 @@ class TestDataLink(unittest.TestCase):
         cursor.fetchall.return_value = self.get_fake_df().to_dict()
         cursor.description = [["col1"], ["col.2"]]
 
-        link = DataLink({})
+        link = DataLink()
         table = link.return_table(self.TABLE_NAME)
 
         sql = f"SELECT * FROM {self.TABLE_NAME}"
@@ -97,7 +96,7 @@ class TestDataLink(unittest.TestCase):
         conn = mockConnection.return_value
         cursor = conn.cursor.return_value
 
-        link = DataLink({})
+        link = DataLink()
         link.drop_columns(self.TABLE_NAME, [])
 
         cursor.execute.assert_not_called()

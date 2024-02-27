@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 class AlpacaLink:
     def __init__(self, dataLink):
         load_dotenv()
-        pass
+        self.dataLink = dataLink()
 
     def retrieve_stock_name(self, alpaca_historical_bars_df):
         index = alpaca_historical_bars_df.index
@@ -32,7 +32,7 @@ class AlpacaLink:
         return dataframe.rename(columns = names)
 
     def join_dataframes(self, df_1, df_2):
-        return df_1.join(df_2)
+        return df_1.join(df_2, how = "outer")
 
     def transform_alpaca_bars_output(self, bars_df):
         symbol = self.retrieve_stock_name(bars_df)
@@ -49,7 +49,36 @@ class AlpacaLink:
         cols = stock_df.columns
         standard_index_df = stock_df.reset_index()
         correct_col_name_df = self.switch_column_names(standard_index_df, {"timestamp":"date"})
-        return pd.melt(correct_col_name_df, id_vars = ['date'], value_vars = cols, var_name="symbol")
+        melted_data = pd.melt(correct_col_name_df, id_vars = ['date'], value_vars = cols, var_name="symbol")
+        return melted_data.dropna()
+
+    def get_from_date(self, identifier):
+        try:
+            date = self.dataLink.get_agg_element("TEST_STOCK_TABLE", 'date', 'MAX', {'column':'symbol', 'value':identifier})
+        except Exception as e:
+            print(e)
+            date = '2020-01-01'
+        if date == None:
+            date =  '2020-01-01'
+        fromDate = pd.to_datetime(date)
+        return fromDate
+
+    def get_timeseries_data(self, symbols):
+        print(symbols)
+        first = True
+        for symbol in symbols:
+            print(symbol)
+            start_date = self.get_from_date(symbol)
+            print(start_date)
+            end_date = date.today()
+            stock_data = self.get_historical_data(symbol, start_date, end_date)
+            if first:
+                df = self.build_stock_prices_frame(None, stock_data)
+                first = False
+            else:
+                df = self.build_stock_prices_frame(df, stock_data)
+        return self.normalize_data(df)
+
 
     def get_historical_data(self, symbols, start_time, end_time):
         stock_client = StockHistoricalDataClient(api_key=os.environ["API_KEY"], secret_key=os.environ["SECRET_KEY"], use_basic_auth=False)
