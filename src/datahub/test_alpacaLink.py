@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 from unittest.mock import patch
 import pandas as pd
-from datahub.alpacaLink import AlpacaLink
 from db_link.db_link import DataLink
 import alpaca.data as apdata
 
@@ -42,6 +41,8 @@ class TestAlpacaLink(unittest.TestCase):
         return df
 
     def build_alpaca_link(self):
+        from datahub.alpacaLink import AlpacaLink
+
         return AlpacaLink(DataLink)
 
     def test_retrieve_name_from_index(self):
@@ -123,6 +124,9 @@ class TestAlpacaLink(unittest.TestCase):
         resp = alpacaLink.get_historical_data(symbols, start, end)
         print(resp)
     '''
+
+    def test_full_data(self):
+        pass
 
 if __name__=="__main__":
     unittest.main()
