@@ -11,20 +11,29 @@ import numpy as np
 import traceback
 import abstract_classes_db_link
 import logging
+from dotenv import load_dotenv
+
 
 """TODO - Create ABC of dataLink. This will allow for better testing"""
 
 class DataLink(abstract_classes_db_link.DataAPI):
 
-    def __init__(self, credentials: dict):
+    def __init__(self):
 
         """
         A class used to create a datalink between Python (Pandas specifically) and SQL.
         ...
         """
+
+        load_dotenv()
+
+        credentials = self.build_db_credents()
         credentials['autocommit'] = True
         self.cnxn = sqlconnection.connect(**credentials)
         self.cursor = self.cnxn.cursor()
+
+    def build_db_credents(self):
+        return {"user":os.environ["db_user"], "password":os.environ["db_password"], "host":os.environ["db_host"], "port":os.environ["db_port"], "database":os.environ["db_name"]}
 
     def create_table(self, tableName: str, dataFrame: pd.DataFrame, addAutoIncrementCol = True) -> None:
 

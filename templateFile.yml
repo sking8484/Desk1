@@ -1,18 +1,27 @@
 Resources:
-  LF36BBE:
-    Type: AWS::Lambda::Function
+  Desk1Task:
+    Type: AWS::ECS::TaskDefinition
     Properties:
-      PackageType: Image
-      Code:
-        ImageUri: !Ref 'imageUri'
-      FunctionName:
-        deskonefunction
-      Role: arn:aws:iam::445420819725:role/service-role/deskonefunction-role-65py88cf
-      Architectures:
-        - x86_64
-      MemorySize: 1024
-      Timeout: 300
+      ContainerDefinitions:
+        - Image: !Sub ${imageUri}
+          Name: !Sub ${service}-desk1-image
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-create-group: true
+              awslogs-group: !Sub ${service}-logs
+              awslogs-region: us-east-1
+              awslogs-stream-prefix: !Sub ${service}
+      TaskRoleArn: ecsDesk1Role
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      ExecutionRoleArn: ecsDesk1Role
+      RequiresCompatibilities:
+        - FARGATE
 
 Parameters:
   imageUri:
+    Type: String
+  service:
     Type: String
