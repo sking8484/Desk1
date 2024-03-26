@@ -8,6 +8,7 @@ import time
 import os
 from alpaca.data import StockHistoricalDataClient, requests
 from alpaca.data.timeframe import TimeFrame
+from alpaca.data.enums import Adjustment
 from dotenv import load_dotenv
 
 
@@ -82,6 +83,6 @@ class AlpacaLink:
 
     def get_historical_data(self, symbols, start_time, end_time):
         stock_client = StockHistoricalDataClient(api_key=os.environ["API_KEY"], secret_key=os.environ["SECRET_KEY"], use_basic_auth=False)
-        req = requests.StockBarsRequest(symbol_or_symbols=symbols, start=start_time, end=end_time, timeframe=TimeFrame.Day)
+        req = requests.StockBarsRequest(symbol_or_symbols=symbols, start=start_time, end=end_time, timeframe=TimeFrame.Day, adjustment = Adjustment.ALL)
         return stock_client.get_stock_bars(req).df
 

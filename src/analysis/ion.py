@@ -49,6 +49,7 @@ class AnalysisMethods(AnalysisToolKit):
         return numerator / denominator
 
     def calculate_svd(self, matrix: np.ndarray) -> dict[str, np.ndarray]:
+        matrix = np.float64(matrix)
         d = np.linalg.matrix_rank(matrix)
 
         U, Sigma, V = np.linalg.svd(matrix)

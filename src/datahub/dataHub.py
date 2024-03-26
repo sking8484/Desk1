@@ -21,7 +21,7 @@ class dataHub:
         #self.factors = iexFactors
         #self.token = self.credents.iexToken
         #self.alpacaLink = iexLink(dataLink)
-        self.mainStockTable = "TEST_STOCK_TABLE"
+        self.mainStockTable = os.environ["MAIN_STOCK_TABLE"]
         self.mainFactorTable = "BLEH"
         self.dataLink = dataLink()
         self.alpacaLink = AlpacaLink(dataLink)
