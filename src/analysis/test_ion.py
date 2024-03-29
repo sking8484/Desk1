@@ -383,6 +383,7 @@ class TestGerberStatistic(unittest.TestCase):
         #                ]))
         gerber_method = GerberStatistic(data, .9)
 
+        print(data)
         stat = gerber_method.get_gerber_statistic()
 
 

@@ -54,7 +54,6 @@ class AnalysisMethods(AnalysisToolKit):
 
         U, Sigma, V = np.linalg.svd(matrix)
         V = t(V)
-        print(V)
 
         X_elem = np.array([ Sigma[i] * np.outer(U[:,i], V[:,i]) for i in range(0,d)])
 
@@ -283,7 +282,7 @@ class GerberStatistic(Gerber, AnalysisMethods):
 
     def get_gerber_statistic(self) -> pd.DataFrame:
         
-        array_data = self.data.to_numpy()
+        array_data = np.float64(self.data.to_numpy())
         limits = self.calculate_limits(array_data, self.Q)
         upper_lower_matrices = self.initialize_upper_lower_matrices(array_data, limits['upperLimit'], limits['lowerLimit'])
         upper_lower_matrices = self.calculate_upper_lower_matrices(upper_lower_matrices['upperMatrix'], upper_lower_matrices['lowerMatrix'])
@@ -291,6 +290,7 @@ class GerberStatistic(Gerber, AnalysisMethods):
         mid_matrix = self.calculate_mid_matrix(upper_matrix, lower_matrix)
         gerber_numerator = self.build_gerber_numerator(upper_matrix, lower_matrix)
         gerber_denominator = self.build_gerber_denominator(mid_matrix, self.calculate_num_rows(array_data))
+        print(gerber_numerator)
         gerber_matrix = self.divide_matrices(gerber_numerator, gerber_denominator)
         gerber_stat = self.create_gerber_stat(self.diagonalize_matrix(self.calculate_std(array_data, axis = 0)), gerber_matrix)
 
