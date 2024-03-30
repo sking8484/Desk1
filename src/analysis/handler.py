@@ -13,7 +13,8 @@ import pandas as pd
 def handler():
     db_link = DataLink()
     #runMSSA(db_link)
-    runGerber(db_link)
+    #runGerber(db_link)
+    runOptimization(db_link)
 
 def runMSSA(link):
     load_dotenv()
@@ -30,8 +31,21 @@ def runGerber(link):
     data = link.return_table(os.environ["MAIN_STOCK_TABLE"]).pivot(index = "date", columns = "symbol", values = "value")
     data_pctchange = data.apply(pd.to_numeric).pct_change().dropna()
     gerber = GerberStatistic(data_pctchange, .5)
-    print(gerber.get_gerber_statistic())
+    gerber_data = gerber.get_gerber_statistic().reset_index()
+    gerber_data.rename(columns={"symbol":"index"}, inplace=True)
+    gerber_data = gerber_data.melt(id_vars=["index"]).rename(columns = {"index":"symbol_1", "symbol":"symbol_2"})
+    gerber_data["date"] = pd.Timestamp.today()
 
+    table = os.environ["MAIN_GERBER_TABLE"]
+    link.append(table, gerber_data)
+
+def runOptimization(link):
+    stock_data = link.return_table(os.environ["MAIN_STOCK_TABLE"]).pivot(index = "date", columns = "symbol", values = "value").reset_index()
+    predictions = link.return_table(os.environ["MAIN_PREDICTION_TABLE"])
+    optimizer = ion.ion()
+    weights = optimizer.getOptimalWeights(stock_data, 50, 1.1, True, predictions,True)
+    table = os.environ["MAIN_WEIGHTS_TABLE"]
+    link.append(table, weights)
 handler()
 
 

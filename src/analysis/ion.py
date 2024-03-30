@@ -290,7 +290,6 @@ class GerberStatistic(Gerber, AnalysisMethods):
         mid_matrix = self.calculate_mid_matrix(upper_matrix, lower_matrix)
         gerber_numerator = self.build_gerber_numerator(upper_matrix, lower_matrix)
         gerber_denominator = self.build_gerber_denominator(mid_matrix, self.calculate_num_rows(array_data))
-        print(gerber_numerator)
         gerber_matrix = self.divide_matrices(gerber_numerator, gerber_denominator)
         gerber_stat = self.create_gerber_stat(self.diagonalize_matrix(self.calculate_std(array_data, axis = 0)), gerber_matrix)
 
@@ -340,14 +339,17 @@ class ion:
         if usePredictions:
             cleaned_data = cleaned_data[predictions['symbol']]
             N = len(cleaned_data.columns)
-            returns = matrix(np.reshape(predictions['value'].values,(N,1)))
+            prediction_values = np.float64(predictions['value'].values)
+            returns = matrix(np.reshape(prediction_values,(N,1)))
         else:
             N = len(cleaned_data.columns)
             returns = matrix(np.reshape(cleaned_data.mean().values,(N,1)))
 
 
 
-        comovement = matrix(self.getGerberMatrix(cleaned_data).values)
+        #comovement = matrix(self.getGerberMatrix(cleaned_data, 0.1).values)
+        
+        comovement = matrix(cleaned_data.cov().values)
 
 
         G1 = matrix(0.0,(N,N))
@@ -355,15 +357,16 @@ class ion:
         G2 = matrix(0.0,(N,N))
         G2[::N + 1] = 1.0
         G = matrix(np.concatenate([G1,G2]))
-        print(G)
+        #print(G)
 
         h1 = matrix(0.0,(N,1))
         h2 = matrix(.10, (N,1))
         h = matrix(np.concatenate([h1,h2]))
-        print(G)
-        print(h)
+        #print(G)
+        #print(h)
         A = matrix(1.0,(1,N))
         b = matrix(leverageAmt)
+
 
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
         weights = np.floor(weights*1000)/1000
@@ -375,6 +378,10 @@ class ion:
         weights = weights[['date', 'symbol', 'value']]
         return weights
 
+    def getGerberMatrix(self, data, q):
+        gerberStat = GerberStatistic(data, q)
+        stat = gerberStat.get_gerber_statistic()
+        return stat
 
 
 class orion:
