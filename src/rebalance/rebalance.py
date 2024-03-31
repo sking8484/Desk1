@@ -2,9 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import alpaca_trade_api as tradeapi
 import time
-from alpaca_trade_api.rest import TimeFrame
 import pandas as pd
 from db_link.db_link import DataLink
 import json

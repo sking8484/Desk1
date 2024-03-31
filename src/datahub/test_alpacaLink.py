@@ -2,7 +2,6 @@ import unittest
 import numpy as np
 from unittest.mock import patch
 import pandas as pd
-from db_link.db_link import DataLink
 import alpaca.data as apdata
 
 class TestAlpacaLink(unittest.TestCase):
@@ -40,10 +39,14 @@ class TestAlpacaLink(unittest.TestCase):
         df = pd.DataFrame(test_data, columns = ["spy", "aapl"], index = index)
         return df
 
-    def build_alpaca_link(self):
+    @patch('db_link.db_link.DataLink')
+    def build_alpaca_link(self, dblink_mock):
         from datahub.alpacaLink import AlpacaLink
+        from db_link.db_link import DataLink
 
-        return AlpacaLink(DataLink)
+        
+
+        return AlpacaLink(dblink_mock)
 
     def test_retrieve_name_from_index(self):
         name = 'spy'
@@ -95,7 +98,11 @@ class TestAlpacaLink(unittest.TestCase):
         output = alpacaLink.transform_alpaca_bars_output(input)
         pd.testing.assert_frame_equal(output, expected)
 
-    def test_building_prices_frame(self):
+
+    @patch('db_link.db_link.DataLink')
+    def test_building_prices_frame(self, dblink_patch):
+        dblink_patch_instance = dblink_patch.return_value
+        dblink_patch_instance.build_db_credents.return_value = {}
         expected = self.transformed_stock_table()
 
         input_1 = self.get_fake_stock_bars('spy')

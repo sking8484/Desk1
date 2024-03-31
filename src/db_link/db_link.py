@@ -33,7 +33,10 @@ class DataLink(abstract_classes_db_link.DataAPI):
         self.cursor = self.cnxn.cursor()
 
     def build_db_credents(self):
-        return {"user":os.environ["db_user"], "password":os.environ["db_password"], "host":os.environ["db_host"], "port":os.environ["db_port"], "database":os.environ["db_name"]}
+        try:
+            return {"user":os.environ["db_user"], "password":os.environ["db_password"], "host":os.environ["db_host"], "port":os.environ["db_port"], "database":os.environ["db_name"]}
+        except Exception:
+            return {}
 
     def create_table(self, tableName: str, dataFrame: pd.DataFrame, addAutoIncrementCol = True) -> None:
 

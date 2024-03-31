@@ -372,7 +372,7 @@ class ion:
         weights = np.floor(weights*1000)/1000
 
         weights = pd.DataFrame(weights, columns = ['value'])
-        weights['date'] = datetime.datetime.today().strftime("%Y-%m-%d")
+        weights['date'] = pd.Timestamp.today()
         weights['symbol'] = cleaned_data.columns
 
         weights = weights[['date', 'symbol', 'value']]

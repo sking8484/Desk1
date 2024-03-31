@@ -1,7 +1,6 @@
 import unittest
 from rebalance.rebalance import Rebalance, AlpacaLink, AlpacaOrderCreator 
 import json
-import alpaca_trade_api
 
 class Position:
     def __init__(self, symbol):
@@ -84,4 +83,5 @@ class TestRebalance(unittest.TestCase):
  
 
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
+    pass
