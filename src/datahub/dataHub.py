@@ -20,6 +20,7 @@ class dataHub:
         #self.factors = iexFactors
         #self.token = self.credents.iexToken
         #self.alpacaLink = iexLink(dataLink)
+        self.dataLink = dataLink()
         self.mainStockTable = os.environ["MAIN_STOCK_TABLE"]
         self.mainFactorTable = "BLEH"
         self.alpacaLink = AlpacaLink(dataLink)
@@ -38,7 +39,8 @@ class dataHub:
         self.buyUniverse = self.getBuyUniverse(table)
 
         data = self.alpacaLink.get_timeseries_data(self.buyUniverse)
-        self.dataLink.append(table, data)
+        if not data.empty:
+            self.dataLink.append(table, data)
 
 
     def maintainUniverse(self) -> None:

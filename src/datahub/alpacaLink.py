@@ -67,18 +67,23 @@ class AlpacaLink:
     def get_timeseries_data(self, symbols):
         print(symbols)
         first = True
+        updated = False
         for symbol in symbols:
             print(symbol)
             start_date = self.get_from_date(symbol)
             print(start_date)
             end_date = date.today()
-            stock_data = self.get_historical_data(symbol, start_date, end_date)
-            if first:
-                df = self.build_stock_prices_frame(None, stock_data)
-                first = False
-            else:
-                df = self.build_stock_prices_frame(df, stock_data)
-        return self.normalize_data(df)
+            if start_date.date() < pd.to_datetime(end_date).date():
+                updated = True
+                stock_data = self.get_historical_data(symbol, start_date, end_date)
+                if first:
+                    df = self.build_stock_prices_frame(None, stock_data)
+                    first = False
+                else:
+                    df = self.build_stock_prices_frame(df, stock_data)
+        if updated:
+            return self.normalize_data(df)
+        return pd.DataFrame({})
 
 
     def get_historical_data(self, symbols, start_time, end_time):
