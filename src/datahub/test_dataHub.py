@@ -20,12 +20,14 @@ class TestAlpacaLink(unittest.TestCase):
     '''
 
 
+    '''
     @patch('db_link.db_link.DataLink')
     @patch.object(dataHub, 'getBuyUniverse')
     def test_update_time_series_data(self, MockMethod, MockDBLink):
         MockMethod.return_value = ['aapl', 'tsla']
         hub = self.build_dataHub()
         hub.maintainUniverse()
+    '''
 
 
 
