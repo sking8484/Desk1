@@ -2,30 +2,26 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import alpaca_trade_api as tradeapi
 import time
-from alpaca_trade_api.rest import TimeFrame
 import pandas as pd
 from db_link.db_link import DataLink
 import json
 import threading
 from abstract_classes_rebalance import Broker, OrderCreator
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
 
 class AlpacaLink(Broker):
     def __init__(self, accountDict: dict):
         self.accountObj = accountDict
-        self.brokerApi = "Main broker API. Requires call to initialize to be setup"
+        self.brokerApi = self.initializeBroker()
         
     def initializeBroker(self):
         alpaca_pubkey = self.accountObj['alpaca_pubkey']
         alpaca_seckey = self.accountObj['alpaca_seckey']
 
-        if 'alpaca_baseurl' in self.accountObj.keys():
-            alpaca_baseurl = self.accountObj['alpaca_baseurl']
-        else:
-            alpaca_baseurl = "https://paper-api.alpaca.markets"
-            
-        self.brokerApi= tradeapi.REST(alpaca_pubkey,alpaca_seckey,alpaca_baseurl,'v2')
+        return TradingClient(alpaca_pubkey, alpaca_seckey, paper=True)
 
     def initializeTestBroker(self, broker):
         self.brokerApi = broker
@@ -34,22 +30,22 @@ class AlpacaLink(Broker):
         return self.brokerApi
 
     def getOpenPositions(self):
-        return self.getBrokerApi().list_positions()
+        return self.getBrokerApi().get_all_positions()
  
     def closeOpenOrders(self):
-        self.getBrokerApi().cancel_all_orders()
+        self.getBrokerApi().cancel_orders()
 
     def getBuyingPower(self):
         return float(self.getBrokerApi().get_account().equity)
         
     def getOpenPosition(self, position: str):
-        return self.getBrokerApi().get_position(position.upper())
+        return self.getBrokerApi().get_open_position(position.upper())
 
     def getOpenPositionMarketValue(self, position: str):
         return self.getOpenPosition(position).market_value
         
     def placeTrade(self, order: dict):
-        return self.getBrokerApi().submit_order(**order)
+        return self.getBrokerApi().submit_order(order)
         
     def liquidate(self, position: str):
         return self.getBrokerApi().close_position(position)
@@ -62,7 +58,7 @@ class AlpacaOrderCreator(OrderCreator):
         self.finalOrders = []
 
     def retrieveDesiredWeights(self):
-        desiredWeights = self.dataLink.returnTable(self.credents.weightsTable)
+        desiredWeights = self.dataLink.return_table(os.environ["MAIN_WEIGHTS_TABLE"])
         desiredWeights = desiredWeights[desiredWeights['date'] == max(desiredWeights['date'])]
         desiredWeights = json.loads(desiredWeights.to_json(orient='records'))
         return desiredWeights 
@@ -124,9 +120,9 @@ class Rebalance:
                     print(e)
             else:
                 if order['marketVal'] > 0:
-                    side = 'buy'
+                    side = OrderSide.BUY
                 else:
-                    side = 'sell'
+                    side = OrderSide.SELL
                 try:
                     orderObj = {
                         "symbol":order['symbol'],
@@ -135,16 +131,15 @@ class Rebalance:
                         "type":'market',
                         "time_in_force":'day'
                     }
-                    self.broker.placeTrade(orderObj)
+
+                    marketOrderRequest = MarketOrderRequest(
+                        symbol=orderObj["symbol"],
+                        notional=orderObj["notional"],
+                        side=orderObj["side"],
+                        time_in_force=TimeInForce.DAY
+                    )
+                    self.broker.placeTrade(marketOrderRequest)
                     orders.append({"symbol":order['symbol'], "notional":abs(order['marketVal'])})
                 except Exception as e:
                     print (e)
         return orders
-
-
-
-def handler():
-    alpacaCredents = credentials().alpaca_credents
-    for i in range(len(alpacaCredents)):
-        currAccount = alpacaCredents[i]
-        x = threading.Thread(target=alpacaLink().rebalance, args=(currAccount,)).start()

@@ -19,7 +19,7 @@ build-images:
 		rm -rf ./deployment/$${service} ; \
 		mkdir ./deployment/$${service} ; \
 		cp Dockerfile ./deployment/$${service}/ ; \
-		docker build -f "./deployment/$${service}/." -t "$${service}-container" . --build-arg function=$${service} ; \
+		docker build -f "./deployment/$${service}/Dockerfile" -t "$${service}-container" . --build-arg function=$${service} ; \
 	done
 	#docker compose build
 

@@ -49,11 +49,11 @@ class AnalysisMethods(AnalysisToolKit):
         return numerator / denominator
 
     def calculate_svd(self, matrix: np.ndarray) -> dict[str, np.ndarray]:
+        matrix = np.float64(matrix)
         d = np.linalg.matrix_rank(matrix)
 
         U, Sigma, V = np.linalg.svd(matrix)
         V = t(V)
-        print(V)
 
         X_elem = np.array([ Sigma[i] * np.outer(U[:,i], V[:,i]) for i in range(0,d)])
 
@@ -282,7 +282,7 @@ class GerberStatistic(Gerber, AnalysisMethods):
 
     def get_gerber_statistic(self) -> pd.DataFrame:
         
-        array_data = self.data.to_numpy()
+        array_data = np.float64(self.data.to_numpy())
         limits = self.calculate_limits(array_data, self.Q)
         upper_lower_matrices = self.initialize_upper_lower_matrices(array_data, limits['upperLimit'], limits['lowerLimit'])
         upper_lower_matrices = self.calculate_upper_lower_matrices(upper_lower_matrices['upperMatrix'], upper_lower_matrices['lowerMatrix'])
@@ -339,14 +339,17 @@ class ion:
         if usePredictions:
             cleaned_data = cleaned_data[predictions['symbol']]
             N = len(cleaned_data.columns)
-            returns = matrix(np.reshape(predictions['value'].values,(N,1)))
+            prediction_values = np.float64(predictions['value'].values)
+            returns = matrix(np.reshape(prediction_values,(N,1)))
         else:
             N = len(cleaned_data.columns)
             returns = matrix(np.reshape(cleaned_data.mean().values,(N,1)))
 
 
 
-        comovement = matrix(self.getGerberMatrix(cleaned_data).values)
+        #comovement = matrix(self.getGerberMatrix(cleaned_data, 0.1).values)
+        
+        comovement = matrix(cleaned_data.cov().values)
 
 
         G1 = matrix(0.0,(N,N))
@@ -354,26 +357,31 @@ class ion:
         G2 = matrix(0.0,(N,N))
         G2[::N + 1] = 1.0
         G = matrix(np.concatenate([G1,G2]))
-        print(G)
+        #print(G)
 
         h1 = matrix(0.0,(N,1))
         h2 = matrix(.10, (N,1))
         h = matrix(np.concatenate([h1,h2]))
-        print(G)
-        print(h)
+        #print(G)
+        #print(h)
         A = matrix(1.0,(1,N))
         b = matrix(leverageAmt)
+
 
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
         weights = np.floor(weights*1000)/1000
 
         weights = pd.DataFrame(weights, columns = ['value'])
-        weights['date'] = datetime.datetime.today().strftime("%Y-%m-%d")
+        weights['date'] = pd.Timestamp.today()
         weights['symbol'] = cleaned_data.columns
 
         weights = weights[['date', 'symbol', 'value']]
         return weights
 
+    def getGerberMatrix(self, data, q):
+        gerberStat = GerberStatistic(data, q)
+        stat = gerberStat.get_gerber_statistic()
+        return stat
 
 
 class orion:
