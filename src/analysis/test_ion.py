@@ -61,7 +61,6 @@ class TestAnalysisMethods(unittest.TestCase):
                             ])
 
         svd_proc = methods.calculate_svd(matrix)
-        print(svd_proc['elementary_matrices'])
         self.assertTrue(np.allclose(matrix, svd_proc['elementary_matrices'].sum(axis=0), atol=1e-10))
 
     def test_filter_svd_matrices(self):
@@ -207,7 +206,7 @@ class TestSpectrumAnalysis(unittest.TestCase):
 
     def test_run_mssa(self):
         data = pd.read_csv("src/analysis/prices.csv")[["Date", "AAPL", "TSLA", "MSFT"]]
-        ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .95, lookBack = 1000)
+        ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .95, lookBack = 10)
         prediction = ssa.run_mssa()
 
 class TestGerberStatistic(unittest.TestCase):
@@ -383,7 +382,6 @@ class TestGerberStatistic(unittest.TestCase):
         #                ]))
         gerber_method = GerberStatistic(data, .9)
 
-        print(data)
         stat = gerber_method.get_gerber_statistic()
 
 

@@ -12,17 +12,16 @@ import pandas as pd
 
 def handler():
     db_link = DataLink()
-    #runMSSA(db_link)
-    #runGerber(db_link)
+    load_dotenv()
+    runMSSA(db_link)
+    runGerber(db_link)
     runOptimization(db_link)
 
 def runMSSA(link):
-    load_dotenv()
     data = link.return_table(os.environ["MAIN_STOCK_TABLE"]).pivot(index = "date", columns = "symbol", values = "value")
-    ssa = SpectrumAnalysis(data, L = 10, useIntercept = False, informationThreshold = .99, lookBack = 1000)
+    ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .90, lookBack = 100)
     prediction = ssa.run_mssa()
     table = os.environ["MAIN_PREDICTION_TABLE"]
-    print(prediction)
 
     link.append(table, prediction)
 

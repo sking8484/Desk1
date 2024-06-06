@@ -11,15 +11,15 @@ services:
       - MYSQL_DATABASE=test
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:3306"]
-        interval: 30s
-        timeout: 10s
+        interval: 10s
+        timeout: 5s
         retries: 5
   service:
     build: 
       context: .
-      dockerfile: deployment/datahub/Dockerfile
+      dockerfile: deployment/rebalance/Dockerfile
       args:
-        function: datahub
+        function: rebalance
     env_file:
       - .env
     depends_on:

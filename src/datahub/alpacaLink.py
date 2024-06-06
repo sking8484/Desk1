@@ -10,6 +10,7 @@ from alpaca.data import StockHistoricalDataClient, requests
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.enums import Adjustment
 from dotenv import load_dotenv
+from pandas.tseries.offsets import BDay
 
 
 class AlpacaLink:
@@ -65,15 +66,12 @@ class AlpacaLink:
         return fromDate
 
     def get_timeseries_data(self, symbols):
-        print(symbols)
         first = True
         updated = False
         for symbol in symbols:
-            print(symbol)
             start_date = self.get_from_date(symbol)
-            print(start_date)
             end_date = date.today()
-            if start_date.date() < pd.to_datetime(end_date).date():
+            if start_date.date() < pd.to_datetime(end_date - BDay(1)).date():
                 updated = True
                 stock_data = self.get_historical_data(symbol, start_date, end_date)
                 if first:

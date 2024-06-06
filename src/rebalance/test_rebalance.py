@@ -10,7 +10,7 @@ class SpoofBrokerApi:
     def close_position(self, position):
         return position
 
-    def list_positions(self):
+    def get_all_positions(self):
         return [Position("AAPL"), Position("TSLA")]
 
     def cancel_all_orders(self):
@@ -26,8 +26,8 @@ class SpoofBrokerApi:
     def get_position(self, position):
         return Position(position)
 
-    def submit_order(self, symbol,time_in_force, side, type, notional):
-        return {"symbol":symbol, "time_in_force":time_in_force, "side":side, "type":type, "notional":"notional"}
+    def submit_order(self, marketOrderRequest):
+        return ""
 
     def close_position(self, position):
         return position
@@ -41,7 +41,10 @@ def spoofWeightsData():
 class TestRebalance(unittest.TestCase):
 
     def test_init(self):
-        brokerLink = AlpacaLink({})    
+        brokerLink = AlpacaLink({
+                                         "alpaca_pubkey":"fake",
+                                         "alpaca_seckey":"fake"
+                                     })    
         orderCreator = AlpacaOrderCreator(None, brokerLink)
         rebalance = Rebalance(brokerLink)
 
@@ -50,8 +53,7 @@ class TestRebalance(unittest.TestCase):
     def test_buyonly_rebalance(self):
         brokerLink = AlpacaLink({
                                          "alpaca_pubkey":"fake",
-                                         "alpaca_seckey":"fake",
-                                         "alpaca_baseurl":"fake"
+                                         "alpaca_seckey":"fake"
                                      })
         orderCreator = AlpacaOrderCreator(None, brokerLink)
         orderCreator.retrieveDesiredWeights = spoofWeightsData 
@@ -66,15 +68,14 @@ class TestRebalance(unittest.TestCase):
     def test_liquidation_rebalance(self):
         brokerLink = AlpacaLink({
                                          "alpaca_pubkey":"fake",
-                                         "alpaca_seckey":"fake",
-                                         "alpaca_baseurl":"fake"
+                                         "alpaca_seckey":"fake"
                                      })
         orderCreator = AlpacaOrderCreator(None, brokerLink)
         orderCreator.retrieveDesiredWeights = spoofWeightsData 
         spoofApi = SpoofBrokerApi()
         def list_mult_pos():
             return [Position("GE"), Position("AAPL"), Position("TSLA")]
-        spoofApi.list_positions = list_mult_pos
+        spoofApi.get_all_positions = list_mult_pos
         brokerLink.initializeTestBroker(spoofApi)
         orders = orderCreator.buildOrderBook()
         rebalance = Rebalance(brokerLink)
@@ -83,5 +84,4 @@ class TestRebalance(unittest.TestCase):
  
 
 if __name__ == '__main__':
-    #unittest.main()
-    pass
+    unittest.main()
