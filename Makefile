@@ -25,7 +25,7 @@ build-images:
 
 create-ecr-repo: build-images
 	for service in `cat $${SERVICE_LIST}`; do \
-		aws ecr create-repository --repository-name $${service}-repo --profile iamadmin-production || true ; \
+		aws ecr create-repository --repository-name $${service}-repo || true ; \
 	done
 
 publish: create-ecr-repo
@@ -35,7 +35,7 @@ publish: create-ecr-repo
 		docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
 	done
 
-deploy:
+deploy: publish
 	for service in `cat $${SERVICE_LIST}`; do \
 		aws cloudformation deploy --stack-name $${service}-$(CFN_STACK_NAME) \
 		--template-file ./templateFile.yml \
