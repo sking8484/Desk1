@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import ion
 import pandas as pd
 
-def handler():
+def handler(event, context):
     db_link = DataLink()
     load_dotenv()
     runMSSA(db_link)
@@ -45,6 +45,5 @@ def runOptimization(link):
     weights = optimizer.getOptimalWeights(stock_data, 50, 1.1, True, predictions,True)
     table = os.environ["MAIN_WEIGHTS_TABLE"]
     link.append(table, weights)
-handler()
 
 
