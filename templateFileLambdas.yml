@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: SAM template to create a Lambda function using a Docker image inside a private VPC with an EC2 instance
+
+Resources:
+  # Create a Lambda Function using Docker image
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: MyLambdaFunction
+      PackageType: Image
+      ImageUri: !Sub ${imageUri}
+      Role: !ImportValue LambdaExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue LambdaSecurityGroupId
+        SubnetIds:
+          - !ImportValue SubnetId
+
+Parameters:
+  imageUri:
+    Type: String

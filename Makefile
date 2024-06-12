@@ -35,11 +35,15 @@ publish: create-ecr-repo
 		docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
 	done
 
-deploy: publish
+deploy:
+	sam deploy --stack-name infra-$(CFN_STACK_NAME) \
+	--template-file ./templateFileInfra.yml --capabilities CAPABILITY_IAM
+
+deployLambdas: 
 	for service in `cat $${SERVICE_LIST}`; do \
-		aws cloudformation deploy --stack-name $${service}-$(CFN_STACK_NAME) \
-		--template-file ./templateFile.yml \
-		--parameter-overrides imageUri=$(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest service=$${service}; \
+		sam deploy --stack-name $${service}-$(CFN_STACK_NAME) \
+		--template-file ./templateFileLambdas.yml --image-repository $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo \
+		--parameter-overrides imageUri=$(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
 	done
 
 destroy:
