@@ -13,6 +13,11 @@ Resources:
       Tags:
         - Key: Name
           Value: MyVPC
+  IPv6CidrBlock:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties:
+      VpcId: !Ref MyVPC
+      AmazonProvidedIpv6CidrBlock: true
 
   # Create an Internet Gateway
   MyInternetGateway:
@@ -44,9 +49,26 @@ Resources:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.2.0/24
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Ipv6CidrBlock: !Select [ 0, !Cidr [ !Select [ 0, !GetAtt MyVPC.Ipv6CidrBlocks], 1, 64 ]]
+      AssignIpv6AddressOnCreation: true
       Tags:
         - Key: Name
           Value: PrivateSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Private
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
 
   # Create a Route Table
   PublicRouteTable:
@@ -56,6 +78,15 @@ Resources:
       Tags:
         - Key: Name
           Value: PublicRouteTable
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt MyEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
 
   # Create a Route to the Internet Gateway
   PublicRoute:
@@ -71,6 +102,12 @@ Resources:
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
 
   # Create a Security Group for the Lambda function
   LambdaSecurityGroup:
@@ -112,7 +149,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-08a0d1e16fc3f61ea # Replace with a valid AMI ID for your region
+      ImageId: ami-04b70fa74e45c3917 # Replace with a valid AMI ID for your region
       SubnetId: !Ref PublicSubnet
       SecurityGroupIds:
         - !Ref EC2SecurityGroup
@@ -140,6 +177,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ec2:*
+                  - ec2:DescribeNetworkInterfaces
                 Resource: '*'
 Outputs:
   EC2InstanceId:

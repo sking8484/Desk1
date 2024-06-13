@@ -85,7 +85,7 @@ class AlpacaLink:
 
 
     def get_historical_data(self, symbols, start_time, end_time):
-        stock_client = StockHistoricalDataClient(api_key=os.environ["API_KEY"], secret_key=os.environ["SECRET_KEY"], use_basic_auth=False)
+        stock_client = StockHistoricalDataClient(api_key=os.environ["ALPACAPUBKEY"], secret_key=os.environ["ALPACAPRIVKEY"], use_basic_auth=False)
         req = requests.StockBarsRequest(symbol_or_symbols=symbols, start=start_time, end=end_time, timeframe=TimeFrame.Day, adjustment = Adjustment.ALL)
         return stock_client.get_stock_bars(req).df
 

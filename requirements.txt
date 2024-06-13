@@ -19,7 +19,6 @@ jmespath==1.0.1
 joblib==1.2.0
 kiwisolver==1.4.4
 lxml==5.1.0
-matplotlib==3.6.3
 msgpack==1.0.3
 multidict==6.0.4
 mysql-connector-python==8.0.32
