@@ -7,7 +7,7 @@ Resources:
   MyLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: MyLambdaFunction
+      FunctionName: !Sub ${Service}-Lambda
       PackageType: Image
       ImageUri: !Sub ${imageUri}
       Role: !ImportValue LambdaExecutionRole
@@ -16,7 +16,44 @@ Resources:
           - !ImportValue LambdaSecurityGroupId
         SubnetIds:
           - !ImportValue SubnetId
+      Environment:
+        Variables:
+          DBUSER: !Sub ${DBUSER}
+          DBPASSWORD: !Sub ${DBPASSWORD}
+          DBHOST: !Sub ${DBHOST}
+          DBPORT: !Sub ${DBPORT}
+          DBNAME: !Sub ${DBNAME}
+          MAINSTOCKTABLE: !Sub ${MAINSTOCKTABLE}
+          MAINPREDICTIONTABLE: !Sub ${MAINPREDICTIONTABLE}
+          MAINGERBERTABLE: !Sub ${MAINGERBERTABLE}
+          MAINWEIGHTSTABLE: !Sub ${MAINWEIGHTSTABLE}
+          ALPACAPUBKEY: !Sub ${ALPACAPUBKEY}
+          ALPACAPRIVKEY: !Sub ${ALPACAPRIVKEY}
 
 Parameters:
+  Service:
+    Type: String
+  DBUSER:
+    Type: String
+  DBPASSWORD:
+    Type: String
+  DBHOST:
+    Type: String
+  DBPORT:
+    Type: String
+  DBNAME:
+    Type: String
+  MAINSTOCKTABLE:
+    Type: String
+  MAINPREDICTIONTABLE:
+    Type: String
+  MAINWEIGHTSTABLE:
+    Type: String
+  MAINGERBERTABLE:
+    Type: String
+  ALPACAPUBKEY:
+    Type: String
+  ALPACAPRIVKEY:
+    Type: String
   imageUri:
     Type: String

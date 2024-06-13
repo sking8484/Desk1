@@ -16,12 +16,13 @@ from datahub.alpacaLink import AlpacaLink
 class dataHub:
     def __init__(self, dataLink):
         load_dotenv()
+        print(os.environ)
         #self.credents = credentials()
         #self.factors = iexFactors
         #self.token = self.credents.iexToken
         #self.alpacaLink = iexLink(dataLink)
         self.dataLink = dataLink()
-        self.mainStockTable = os.environ["MAIN_STOCK_TABLE"]
+        self.mainStockTable = os.environ["MAINSTOCKTABLE"]
         self.mainFactorTable = "BLEH"
         self.alpacaLink = AlpacaLink(dataLink)
 

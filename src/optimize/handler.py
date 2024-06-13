@@ -5,9 +5,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db_link.db_link import test_setup
 import optimize
 
-def handler():
-    test_setup()
+def handler(req, resp):
+    return
 
-handler()
 
 
