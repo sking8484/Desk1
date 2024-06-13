@@ -88,11 +88,13 @@ class AlpacaOrderCreator(OrderCreator):
             else:
                 currOrder['marketVal'] = round((self.broker.getBuyingPower())*float(currOrder['value']),2)
                 currOrder['orderType']='TRADE'
-                if currOrder['symbol'].upper() in self.broker.getOpenPositions():
-                    currOrder['marketVal'] -= float(self.broker.getPositionMarketValue(currOrder['symbol'].upper()))
+                print(self.getOpenPositions())
+                if currOrder['symbol'].upper() in self.getOpenPositions():
+                    currOrder['marketVal'] -= float(self.broker.getOpenPositionMarketValue(currOrder['symbol'].upper()))
             currOrder['symbol'] = currOrder['symbol'].upper()
             orders.append(currOrder)
         self.finalOrders += liquidations
+        orders.sort(key=lambda x: x["marketVal"])
         self.finalOrders += orders
 
         
@@ -126,7 +128,7 @@ class Rebalance:
                 try:
                     orderObj = {
                         "symbol":order['symbol'],
-                        "notional":abs(order['marketVal']),
+                        "notional":abs(round(order['marketVal'],2)),
                         "side":side,
                         "type":'market',
                         "time_in_force":'day'
