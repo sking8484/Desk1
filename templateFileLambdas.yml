@@ -16,6 +16,8 @@ Resources:
           - !ImportValue LambdaSecurityGroupId
         SubnetIds:
           - !ImportValue SubnetId
+      Timeout: 150
+      MemorySize: 1000
       Environment:
         Variables:
           DBUSER: !Sub ${DBUSER}

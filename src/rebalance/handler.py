@@ -7,7 +7,7 @@ from db_link.db_link import DataLink
 from datahub.dataHub import dataHub
 import os
 from dotenv import load_dotenv
-from rebalance import AlpacaLink, AlpacaOrderCreator, Rebalance
+from rebalance.rebalance import AlpacaLink, AlpacaOrderCreator, Rebalance
 
 def handler(req, resp):
     db_link = DataLink()

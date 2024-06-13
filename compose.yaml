@@ -17,11 +17,11 @@ services:
   service:
     build: 
       context: .
-      dockerfile: deployment/analysis/Dockerfile
+      dockerfile: deployment/rebalance/Dockerfile
       args:
-        function: analysis
+        function: rebalance
     env_file:
-      - .env
+      - .env-local
     depends_on:
       database:
         condition: service_healthy
