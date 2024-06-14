@@ -17,9 +17,9 @@ services:
   service:
     build: 
       context: .
-      dockerfile: deployment/rebalance/Dockerfile
+      dockerfile: deployment/analysis/Dockerfile
       args:
-        function: rebalance
+        function: analysis
     env_file:
       - .env-local
     depends_on:

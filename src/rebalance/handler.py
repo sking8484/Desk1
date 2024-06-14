@@ -24,4 +24,4 @@ def handler(req, resp):
     rebalance = Rebalance(alpacaLink)
     rebalance.placeTrades(orders)
 
-    return
+    return {'statusCode': 200}

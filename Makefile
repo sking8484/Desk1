@@ -39,14 +39,14 @@ deploy:
 	sam deploy --stack-name infra-$(CFN_STACK_NAME) \
 	--template-file ./templateFileInfra.yml --capabilities CAPABILITY_IAM
 
-deployLambdas: 
+deployLambdas: publish
 	for service in `cat $${SERVICE_LIST}`; do \
 		sam deploy --stack-name $${service}-$(CFN_STACK_NAME) \
 		--template-file ./templateFileLambdas.yml --image-repository $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo \
 		--parameter-overrides imageUri=$(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:${TAG} DBUSER=${DBUSER} DBPASSWORD=${DBPASSWORD}\
 		DBHOST=${DBHOST} DBPORT=${DBPORT} DBNAME=${DBNAME} MAINSTOCKTABLE=${MAINSTOCKTABLE}\
 		MAINPREDICTIONTABLE=${MAINPREDICTIONTABLE} MAINWEIGHTSTABLE=${MAINWEIGHTSTABLE} MAINGERBERTABLE=${MAINGERBERTABLE}\
-		ALPACAPUBKEY=${ALPACAPUBKEY} ALPACAPRIVKEY=${ALPACAPRIVKEY} Service=$${service};\
+		ALPACAPUBKEY=${ALPACAPUBKEY} ALPACAPRIVKEY=${ALPACAPRIVKEY} Service=$${service} ENV=${ENV};\
 	done
 
 destroy:

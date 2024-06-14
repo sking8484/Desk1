@@ -179,6 +179,10 @@ Resources:
                   - ec2:*
                   - ec2:DescribeNetworkInterfaces
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:*
+                Resource: '*'
 Outputs:
   EC2InstanceId:
     Description: ID of the EC2 instance
