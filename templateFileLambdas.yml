@@ -16,10 +16,11 @@ Resources:
           - !ImportValue LambdaSecurityGroupId
         SubnetIds:
           - !ImportValue SubnetId
-      Timeout: 150
+      Timeout: 300 
       MemorySize: 1000
       Environment:
         Variables:
+          ENV: !Sub ${ENV}
           DBUSER: !Sub ${DBUSER}
           DBPASSWORD: !Sub ${DBPASSWORD}
           DBHOST: !Sub ${DBHOST}
@@ -31,6 +32,19 @@ Resources:
           MAINWEIGHTSTABLE: !Sub ${MAINWEIGHTSTABLE}
           ALPACAPUBKEY: !Sub ${ALPACAPUBKEY}
           ALPACAPRIVKEY: !Sub ${ALPACAPRIVKEY}
+
+  Desk1Queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${Service}-queue
+      VisibilityTimeout: 400
+
+  Desk1EventSource:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt Desk1Queue.Arn
+      FunctionName: !GetAtt MyLambdaFunction.Arn
+      BatchSize: 1
 
 Parameters:
   Service:
@@ -56,6 +70,8 @@ Parameters:
   ALPACAPUBKEY:
     Type: String
   ALPACAPRIVKEY:
+    Type: String
+  ENV:
     Type: String
   imageUri:
     Type: String

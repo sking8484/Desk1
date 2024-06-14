@@ -175,7 +175,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
     def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
         
         predictions = {}
-        curr_date = datetime.datetime.today().strftime("%Y-%m-%d")
+        curr_date = datetime.datetime.now()
         predictions[curr_date] = {}
         for predictor in predictors:
             features = predictors[predictor]
@@ -336,6 +336,7 @@ class ion:
         cleaned_data = data.pct_change().dropna()
 
         if usePredictions:
+            print("using predictions")
             cleaned_data = cleaned_data[predictions['symbol']]
             N = len(cleaned_data.columns)
             prediction_values = np.float64(predictions['value'].values)
@@ -371,7 +372,7 @@ class ion:
         weights = np.floor(weights*1000)/1000
 
         weights = pd.DataFrame(weights, columns = ['value'])
-        weights['date'] = pd.Timestamp.today()
+        weights['date'] = datetime.datetime.now()
         weights['symbol'] = cleaned_data.columns
 
         weights = weights[['date', 'symbol', 'value']]

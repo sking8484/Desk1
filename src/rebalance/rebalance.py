@@ -60,6 +60,7 @@ class AlpacaOrderCreator(OrderCreator):
     def retrieveDesiredWeights(self):
         desiredWeights = self.dataLink.return_table(os.environ["MAINWEIGHTSTABLE"])
         desiredWeights = desiredWeights[desiredWeights['date'] == max(desiredWeights['date'])]
+        print(desiredWeights)
         desiredWeights = json.loads(desiredWeights.to_json(orient='records'))
         return desiredWeights 
 
