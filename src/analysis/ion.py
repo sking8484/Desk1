@@ -360,7 +360,7 @@ class ion:
         #print(G)
 
         h1 = matrix(0.0,(N,1))
-        h2 = matrix(.10, (N,1))
+        h2 = matrix(.2*leverageAmt, (N,1))
         h = matrix(np.concatenate([h1,h2]))
         #print(G)
         #print(h)
@@ -369,7 +369,7 @@ class ion:
 
 
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
-        weights = np.floor(weights*1000)/1000
+        weights = np.round(weights,decimals=3)
 
         weights = pd.DataFrame(weights, columns = ['value'])
         weights['date'] = datetime.datetime.now()
