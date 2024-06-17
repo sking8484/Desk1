@@ -3,6 +3,9 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db_link.db_link import test_setup
+from reportingSuite import reportingSuite
 
 def handler(response, context):
-    test_setup()
+    suite = reportingSuite()
+    suite.calcPerformance()
+

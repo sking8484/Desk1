@@ -5,6 +5,7 @@ import json
 class Position:
     def __init__(self, symbol):
         self.symbol = symbol
+        self.market_value =0 
 
 class SpoofBrokerApi:
     def close_position(self, position):
@@ -23,7 +24,7 @@ class SpoofBrokerApi:
 
         return Account()
 
-    def get_position(self, position):
+    def get_open_position(self, position):
         return Position(position)
 
     def submit_order(self, marketOrderRequest):
