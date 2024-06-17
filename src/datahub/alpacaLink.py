@@ -73,7 +73,7 @@ class AlpacaLink:
             end_date = date.today()
             if start_date.date() < pd.to_datetime(end_date - BDay(1)).date():
                 updated = True
-                stock_data = self.get_historical_data(symbol, start_date, end_date)
+                stock_data = self.get_historical_data(symbol, start_date + BDay(1), end_date)
                 if first:
                     df = self.build_stock_prices_frame(None, stock_data)
                     first = False
