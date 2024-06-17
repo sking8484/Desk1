@@ -25,21 +25,28 @@ build-images:
 
 create-ecr-repo: build-images
 	for service in `cat $${SERVICE_LIST}`; do \
-		aws ecr create-repository --repository-name $${service}-repo --profile iamadmin-production || true ; \
+		aws ecr create-repository --repository-name $${service}-repo || true ; \
 	done
 
 publish: create-ecr-repo
 	for service in `cat $${SERVICE_LIST}`; do \
-		docker tag $${service}-container:latest $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
+		docker tag $${service}-container:latest $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:${TAG} ; \
 		aws ecr get-login-password | docker login --username AWS --password-stdin $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com ; \
-		docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest ; \
+		docker push $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:${TAG} ; \
 	done
 
 deploy:
+	sam deploy --stack-name infra-$(CFN_STACK_NAME) \
+	--template-file ./templateFileInfra.yml --capabilities CAPABILITY_IAM
+
+deployLambdas: publish
 	for service in `cat $${SERVICE_LIST}`; do \
-		aws cloudformation deploy --stack-name $${service}-$(CFN_STACK_NAME) \
-		--template-file ./templateFile.yml \
-		--parameter-overrides imageUri=$(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:latest service=$${service}; \
+		sam deploy --stack-name $${service}-$(CFN_STACK_NAME) \
+		--template-file ./templateFileLambdas.yml --image-repository $(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo \
+		--parameter-overrides imageUri=$(AWS_ACCOUNT_ID).dkr.ecr.us-east-1.amazonaws.com/$${service}-repo:${TAG} DBUSER=${DBUSER} DBPASSWORD=${DBPASSWORD}\
+		DBHOST=${DBHOST} DBPORT=${DBPORT} DBNAME=${DBNAME} MAINSTOCKTABLE=${MAINSTOCKTABLE}\
+		MAINPREDICTIONTABLE=${MAINPREDICTIONTABLE} MAINWEIGHTSTABLE=${MAINWEIGHTSTABLE} MAINGERBERTABLE=${MAINGERBERTABLE}\
+		ALPACAPUBKEY=${ALPACAPUBKEY} ALPACAPRIVKEY=${ALPACAPRIVKEY} Service=$${service} ENV=${ENV};\
 	done
 
 destroy:

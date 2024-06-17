@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: SAM template to create a Lambda function using a Docker image inside a private VPC with an EC2 instance
+
+Resources:
+  # Create a Lambda Function using Docker image
+  MyLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Service}-Lambda
+      PackageType: Image
+      ImageUri: !Sub ${imageUri}
+      Role: !ImportValue LambdaExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue LambdaSecurityGroupId
+        SubnetIds:
+          - !ImportValue SubnetId
+      Timeout: 300 
+      MemorySize: 1000
+      Environment:
+        Variables:
+          ENV: !Sub ${ENV}
+          DBUSER: !Sub ${DBUSER}
+          DBPASSWORD: !Sub ${DBPASSWORD}
+          DBHOST: !Sub ${DBHOST}
+          DBPORT: !Sub ${DBPORT}
+          DBNAME: !Sub ${DBNAME}
+          MAINSTOCKTABLE: !Sub ${MAINSTOCKTABLE}
+          MAINPREDICTIONTABLE: !Sub ${MAINPREDICTIONTABLE}
+          MAINGERBERTABLE: !Sub ${MAINGERBERTABLE}
+          MAINWEIGHTSTABLE: !Sub ${MAINWEIGHTSTABLE}
+          ALPACAPUBKEY: !Sub ${ALPACAPUBKEY}
+          ALPACAPRIVKEY: !Sub ${ALPACAPRIVKEY}
+
+  Desk1Queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${Service}-queue
+      VisibilityTimeout: 400
+
+  Desk1EventSource:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt Desk1Queue.Arn
+      FunctionName: !GetAtt MyLambdaFunction.Arn
+      BatchSize: 1
+
+Parameters:
+  Service:
+    Type: String
+  DBUSER:
+    Type: String
+  DBPASSWORD:
+    Type: String
+  DBHOST:
+    Type: String
+  DBPORT:
+    Type: String
+  DBNAME:
+    Type: String
+  MAINSTOCKTABLE:
+    Type: String
+  MAINPREDICTIONTABLE:
+    Type: String
+  MAINWEIGHTSTABLE:
+    Type: String
+  MAINGERBERTABLE:
+    Type: String
+  ALPACAPUBKEY:
+    Type: String
+  ALPACAPRIVKEY:
+    Type: String
+  ENV:
+    Type: String
+  imageUri:
+    Type: String

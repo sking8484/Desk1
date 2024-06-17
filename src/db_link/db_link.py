@@ -34,7 +34,7 @@ class DataLink(abstract_classes_db_link.DataAPI):
 
     def build_db_credents(self):
         try:
-            return {"user":os.environ["db_user"], "password":os.environ["db_password"], "host":os.environ["db_host"], "port":os.environ["db_port"], "database":os.environ["db_name"]}
+            return {"user":os.environ["DBUSER"], "password":os.environ["DBPASSWORD"], "host":os.environ["DBHOST"], "port":os.environ["DBPORT"], "database":os.environ["DBNAME"]}
         except Exception:
             return {}
 

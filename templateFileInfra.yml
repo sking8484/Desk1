@@ -1,0 +1,211 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: SAM template to create a Lambda function using a Docker image inside a private VPC with an EC2 instance
+
+Resources:
+  # Create a VPC
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+  IPv6CidrBlock:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties:
+      VpcId: !Ref MyVPC
+      AmazonProvidedIpv6CidrBlock: true
+
+  # Create an Internet Gateway
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  # Attach the Internet Gateway to the VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  # Create a Public Subnet
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  # Create a Private Subnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Ipv6CidrBlock: !Select [ 0, !Cidr [ !Select [ 0, !GetAtt MyVPC.Ipv6CidrBlocks], 1, 64 ]]
+      AssignIpv6AddressOnCreation: true
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: Private
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  # Create a Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  MyEIP:
+    Type: AWS::EC2::EIP
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt MyEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  # Create a Route to the Internet Gateway
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+
+  # Associate the Public Subnet with the Route Table
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Create a Security Group for the Lambda function
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Lambda access to VPC
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # Create a Security Group for the EC2 instance
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow EC2 access within VPC
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0  # Allow SSH from anywhere (use cautiously)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+  # Create an IAM Role for the Lambda function
+  
+
+  # Create an EC2 Instance
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-04b70fa74e45c3917 # Replace with a valid AMI ID for your region
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - ec2:*
+                  - ec2:DescribeNetworkInterfaces
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:*
+                Resource: '*'
+Outputs:
+  EC2InstanceId:
+    Description: ID of the EC2 instance
+    Value: !Ref MyEC2Instance
+    Export: 
+      Name: EC2InstanceID
+  LambdaSecurityGroupId:
+    Description: ID of the Lambda security group
+    Value: !Ref LambdaSecurityGroup
+    Export:
+      Name: LambdaSecurityGroupId
+  VPCId:
+    Description: ID of the VPC
+    Value: !Ref MyVPC
+    Export:
+      Name: VPCId
+  SubnetId:
+    Description: Subet id
+    Value: !Ref PrivateSubnet
+    Export:
+      Name: SubnetId
+  LambdaExecutionRole:
+    Description: Lambda ex role
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: LambdaExecutionRole

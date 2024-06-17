@@ -73,7 +73,7 @@ class AlpacaLink:
             end_date = date.today()
             if start_date.date() < pd.to_datetime(end_date - BDay(1)).date():
                 updated = True
-                stock_data = self.get_historical_data(symbol, start_date, end_date)
+                stock_data = self.get_historical_data(symbol, start_date + BDay(1), end_date)
                 if first:
                     df = self.build_stock_prices_frame(None, stock_data)
                     first = False
@@ -85,7 +85,7 @@ class AlpacaLink:
 
 
     def get_historical_data(self, symbols, start_time, end_time):
-        stock_client = StockHistoricalDataClient(api_key=os.environ["API_KEY"], secret_key=os.environ["SECRET_KEY"], use_basic_auth=False)
+        stock_client = StockHistoricalDataClient(api_key=os.environ["ALPACAPUBKEY"], secret_key=os.environ["ALPACAPRIVKEY"], use_basic_auth=False)
         req = requests.StockBarsRequest(symbol_or_symbols=symbols, start=start_time, end=end_time, timeframe=TimeFrame.Day, adjustment = Adjustment.ALL)
         return stock_client.get_stock_bars(req).df
 

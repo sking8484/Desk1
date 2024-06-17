@@ -7,13 +7,13 @@ from db_link.db_link import DataLink
 from datahub.dataHub import dataHub
 import os
 from dotenv import load_dotenv
-from rebalance import AlpacaLink, AlpacaOrderCreator, Rebalance
+from rebalance.rebalance import AlpacaLink, AlpacaOrderCreator, Rebalance
 
-def handler():
+def handler(req, resp):
     db_link = DataLink()
     load_dotenv()
-    alpaca_pubkey = os.environ["ALPACA_PUBKEY"]
-    alpaca_privkey = os.environ["ALPACA_PRIVKEY"]
+    alpaca_pubkey = os.environ["ALPACAPUBKEY"]
+    alpaca_privkey = os.environ["ALPACAPRIVKEY"]
     credentsDict = {
         "alpaca_pubkey":alpaca_pubkey,
         "alpaca_seckey":alpaca_privkey
@@ -24,4 +24,4 @@ def handler():
     rebalance = Rebalance(alpacaLink)
     rebalance.placeTrades(orders)
 
-handler()
+    return {'statusCode': 200}

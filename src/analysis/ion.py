@@ -5,7 +5,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from typing import Optional
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from numpy import transpose as t
 import sys
 import datetime
@@ -176,7 +175,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
     def predict(self, model: LinearRegression, predictors: dict[str, np.ndarray]):
         
         predictions = {}
-        curr_date = datetime.datetime.today().strftime("%Y-%m-%d")
+        curr_date = datetime.datetime.now()
         predictions[curr_date] = {}
         for predictor in predictors:
             features = predictors[predictor]
@@ -337,6 +336,7 @@ class ion:
         cleaned_data = data.pct_change().dropna()
 
         if usePredictions:
+            print("using predictions")
             cleaned_data = cleaned_data[predictions['symbol']]
             N = len(cleaned_data.columns)
             prediction_values = np.float64(predictions['value'].values)
@@ -360,7 +360,7 @@ class ion:
         #print(G)
 
         h1 = matrix(0.0,(N,1))
-        h2 = matrix(.10, (N,1))
+        h2 = matrix(.2*leverageAmt, (N,1))
         h = matrix(np.concatenate([h1,h2]))
         #print(G)
         #print(h)
@@ -369,10 +369,10 @@ class ion:
 
 
         weights = qp(delta*comovement,-returns, G,h,A,b)['x']
-        weights = np.floor(weights*1000)/1000
+        weights = np.round(weights,decimals=3)
 
         weights = pd.DataFrame(weights, columns = ['value'])
-        weights['date'] = pd.Timestamp.today()
+        weights['date'] = datetime.datetime.now()
         weights['symbol'] = cleaned_data.columns
 
         weights = weights[['date', 'symbol', 'value']]
@@ -382,338 +382,3 @@ class ion:
         gerberStat = GerberStatistic(data, q)
         stat = gerberStat.get_gerber_statistic()
         return stat
-
-
-class orion:
-    def __init__(self):
-        global tf
-        if 'tensorflow' not in sys.modules:
-            import tensorflow as tf
-        self.tf = tf
-        self.TimeRules = TimeRules()
-        self.universeCols = []
-        self.factorCols = []
-        self.windowLength = 252
-        self.trained = False
-
-
-    def updateData(self):
-        self.prices = pd.read_csv(self.credents.networkPricesLocation)
-        self.factors = pd.read_csv(self.credents.networkFactorsLocation)
-
-        self.currUniverse = list(set(self.prices[self.prices['date'] == max(self.prices['date'])]['symbol']))
-        self.currUniverse.sort()
-
-        self.currFactors = list(set(self.factors['symbol']))
-        self.prices = self.prices[self.prices['symbol'].isin(self.currUniverse)]
-        self.features = pd.concat([self.prices,self.factors], axis = 0).pivot(index='date',columns='symbol',values='value').fillna(method='ffill').fillna(value=0)
-
-
-    def trainNetwork(self):
-        print("Training network")
-        self.trained = True
-        self.mlPipe = mlPipeline(features=self.features.copy(), currentUniverse=self.currUniverse, windowLength=self.windowLength)
-
-
-    def checkTrainStatus(self, force = False):
-        self.updateData()
-
-        if (self.currUniverse != self.universeCols) or (self.currFactors != self.factorCols):
-            self.trainNetwork()
-            self.universeCols = self.currUniverse
-            self.factorCols = self.currFactors
-
-        elif (date.today().weekday() == 6):
-            self.trainNetwork()
-            self.universeCols = self.currUniverse
-            self.factorCols = self.currFactors
-        elif (force):
-            self.trainNetwork()
-            self.universeCols = self.currUniverse
-            self.factorCols = self.currFactors
-        else:
-            print("Does not need training")
-
-    def controlNetwork(self):
-
-        lastUpdateTrain = ''
-        lastUpdatePredict = ''
-        while True:
-            if self.TimeRules.getTiming(lastUpdateTrain, ['deepLearning', 'checkTrainStatus']):
-                lastUpdateTrain = date.today().strftime('%Y-%m-%d')
-                self.checkTrainStatus()
-            if self.TimeRules.getTiming(lastUpdatePredict, ['deepLearning','predict']):
-                lastUpdatePredict = date.today().strftime('%Y-%m-%d')
-                if not self.trained:
-                    self.checkTrainStatus(force=True)
-                else:
-                    self.updateData()
-                predictions = self.mlPipe.predict(features=self.features.copy())
-                predictions.to_csv(self.credents.networkPredictionsLocation, index=False)
-
-            else:
-                time.sleep(self.credents.sleepSeconds)
-
-
-class mlPipeline():
-    def __init__(self, features, currentUniverse, splitPercents = [.88, .94, 1], windowLength = 252):
-
-        self.splitPercents = splitPercents
-        self.features = features
-        self.currentUniverse = currentUniverse
-        self.windowLength = windowLength
-
-
-        self.numObs = len(self.features.index)
-        self.trainSplit = int(self.numObs*self.splitPercents[0])
-        self.valSplit = int(self.numObs*self.splitPercents[1])
-        self.changes = [1, 5, 20, 252]
-        self.featureMaxes = {}
-        self.engineerFeatures()
-        self.split()
-        self.normalizePredicting()
-        self.generateWindow()
-        self.compile_and_fit()
-
-    def engineerFeatures(self, usePrev = False):
-
-        for col in self.features.columns:
-
-            for change in self.changes:
-                self.features[col + '_' + str(change)] = self.features[col].pct_change(change)
-            if usePrev:
-                maxDivider = self.featureMaxes[col]
-            else:
-                maxDivider = max(self.features[:self.trainSplit][col])
-                self.featureMaxes[col] = max(self.features[:self.trainSplit][col])
-
-            self.features[col + 'percentOfMax'] = self.features[col] / maxDivider
-
-            self.features.drop(col, inplace=True, axis = 1)
-        self.features.replace([np.inf, -np.inf], 0, inplace=True)
-        self.features.fillna(value=0, inplace=True)
-
-    def split(self):
-
-        self.train_df, self.val_df, self.test_df = self.features[:self.trainSplit], self.features[self.trainSplit:self.valSplit], self.features[self.valSplit:]
-
-    def normalizePredicting(self):
-        self.train_mean = (self.train_df).min()
-        self.train_std = self.train_df.max()
-
-        self.train_df = (self.train_df - self.train_mean)/ (self.train_std - self.train_mean)
-        self.val_df = (self.val_df - self.train_mean) / (self.train_std - self.train_mean)
-        self.test_df = (self.test_df - self.train_mean) / (self.train_std - self.train_mean)
-
-
-    def generateWindow(self):
-        self.labels = [col + '_' + str(self.changes[0]) for col in self.currentUniverse]
-        self.window = windowGenerator(self.windowLength, label_width = 1, shift = 1,
-                                train_df=self.train_df, val_df = self.val_df, test_df = self.test_df,
-                                label_columns = self.labels)
-
-
-    def compile_and_fit(self):
-
-        self.rnn_model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(100, return_sequences = True),
-            tf.keras.layers.Dropout(.2),
-            tf.keras.layers.LSTM(150, return_sequences = True),
-            tf.keras.layers.Dropout(.2),
-            tf.keras.layers.LSTM(150, return_sequences = True),
-            tf.keras.layers.Dropout(.2),
-            tf.keras.layers.LSTM(100),
-            tf.keras.layers.Dense(units = len(self.labels))
-        ])
-
-        MAX_EPOCHS = 10
-        early_stopping = tf.keras.callbacks.EarlyStopping(monitor = 'val_loss',
-                                                         patience = 5,
-                                                         mode = 'min')
-        self.rnn_model.compile(loss = tf.keras.losses.MeanSquaredError(),
-                     optimizer = tf.keras.optimizers.Adam(learning_rate = 0.005),
-                     metrics = [tf.keras.metrics.MeanAbsoluteError()])
-
-
-
-
-        history = self.rnn_model.fit(self.window.train, epochs = MAX_EPOCHS,
-                           validation_data = self.window.val,
-                           callbacks =[early_stopping])
-
-        #self.window.plot(model=self.rnn_model, plot_col='AAPL_1')
-
-
-    def predict(self, features):
-        print('prediction')
-        self.features = features
-
-        self.engineerFeatures(usePrev=True)
-
-        self.features = (self.features - self.train_mean)/(self.train_std - self.train_mean)
-        print(self.features.tail(10))
-
-        data = tf.expand_dims(tf.constant(self.features[-self.windowLength:]), axis = 0)
-
-        preds = tf.squeeze(self.rnn_model((data))).numpy()
-
-        dfObj = {self.labels[i].split('_')[0] : preds[i] for i in range(len(preds))}
-        predictions = pd.DataFrame.from_records([dfObj])
-        predictions['date'] = date.today().strftime('%Y-%m-%d')
-        predictions = pd.melt(predictions, id_vars=['date'], var_name='symbol')
-        return predictions
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-windowGenerator
-    A class to generate neural network windows
-'''
-
-
-
-
-class windowGenerator():
-    def __init__(self, input_width, label_width, shift,
-                train_df, val_df, test_df,
-                label_columns = None):
-        # Store the raw data
-
-        self.train_df = train_df
-        self.test_df = test_df
-        self.val_df = val_df
-
-        # Work out the label column indices
-        self.label_columns = label_columns
-        if label_columns is not None:
-            self.label_columns_indices = {name: i for i, name in enumerate(label_columns)}
-
-        self.column_indices = {name: i for i, name in enumerate(train_df.columns)}
-
-
-        # Work out the window parameters
-
-        self.input_width = input_width
-        self.label_width = label_width
-        self.shift = shift
-
-        self.total_window_size = input_width + shift
-
-        self.input_slice = slice(0, input_width)
-        self.input_indices = np.arange(self.total_window_size)[self.input_slice]
-
-        self.label_start = self.total_window_size - self.label_width
-
-        self.labels_slice = slice(self.label_start, None)
-        self.label_indices = np.arange(self.total_window_size)[self.labels_slice]
-
-
-    def __repr__(self):
-        return '\n'.join([
-            f'Total window size: {self.total_window_size}',
-            f'Input indices: {self.input_indices}',
-            f'Label indices: {self.label_indices}',
-            f'Label column name(s): {self.label_columns}'
-        ])
-
-    def split_window(self, features):
-        # Features is a 3d array, or tensor,
-            # created with tf.keras.utils.timeseries_dataset_from_array function
-
-        inputs = features[:, self.input_slice, :]
-        labels = features[:, self.labels_slice, :]
-        if self.label_columns is not None:
-            labels = tf.stack(
-                [labels[:,:, self.column_indices[name]] for name in self.label_columns],
-                axis = -1)
-
-        ## Slicing doesn't preserve static shape info, so set the shapes
-        ## Manually. This way the tf.data.Datasets are easier to inspect.
-
-        inputs.set_shape([None, self.input_width, None])
-        labels.set_shape([None, self.label_width, None])
-
-        return inputs, labels
-
-    def plot(self, model=None, plot_col='AAPL_1', max_subplots = 3):
-        inputs, labels = self.example
-        plt.figure(figsize = (12, 8))
-        plot_col_index = self.column_indices[plot_col]
-
-        max_n = min(max_subplots, len(inputs))
-
-        for n in range(max_n):
-            plt.subplot(max_n, 1, n+1)
-            plt.ylabel(f'{plot_col}[normed]')
-            plt.plot(self.input_indices, inputs[n, :, plot_col_index],
-                    label = 'Inputs', marker = '.', zorder = -10)
-
-            if self.label_columns:
-                label_col_index = self.label_columns_indices.get(plot_col, None)
-            else:
-                label_col_index = plot_col_index
-
-            if label_col_index is None:
-                continue
-
-            plt.scatter(self.label_indices, labels[n, :, label_col_index],
-                       edgecolors = 'k', label = 'Labels', c='#2ca02c', s=64)
-
-            if model is not None:
-                predictions = model(inputs)
-
-                plt.scatter(self.label_indices, predictions[n, label_col_index],
-                           marker = 'X', edgecolors = 'k', label = 'Predictions',
-                           c = '#ff7f0e', s=64)
-            if n==0:
-                plt.legend()
-        plt.xlabel('Time [h]')
-        plt.savefig('plt.png')
-
-    def make_dataset(self, data):
-
-        data = np.array(data, dtype=np.float32)
-
-        ds = tf.keras.utils.timeseries_dataset_from_array(
-            data = data,
-            targets = None,
-            sequence_length = self.total_window_size,
-            sequence_stride = 1,
-            shuffle= True,
-            batch_size = 32,)
-        ds = ds.map(self.split_window)
-
-        return ds
-
-    @property
-    def train(self):
-        return self.make_dataset(self.train_df)
-
-    @property
-    def val(self):
-        return self.make_dataset(self.val_df)
-
-    @property
-    def test(self):
-        return self.make_dataset(self.test_df)
-
-    @property
-    def example(self):
-        '''Get and cache an esample batch of inputs, labels for plotting'''
-
-        result = getattr(self, '_example', None)
-        if result is None:
-            # No example batch was found so get one from .train dataset
-            result = next(iter(self.test))
-            # and cache it for next time
-            self._example = result
-        return result

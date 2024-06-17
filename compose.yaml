@@ -17,13 +17,15 @@ services:
   service:
     build: 
       context: .
-      dockerfile: deployment/rebalance/Dockerfile
+      dockerfile: deployment/analysis/Dockerfile
       args:
-        function: rebalance
+        function: analysis
     env_file:
-      - .env
+      - .env-local
     depends_on:
       database:
         condition: service_healthy
+    ports:
+      - "9000:8080"
 volumes:
   mysql:

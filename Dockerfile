@@ -1,20 +1,14 @@
-FROM python:3.9-slim as compile-image
+FROM public.ecr.aws/lambda/python:3.9
 
-RUN python -m venv /opt/venv
-# Make sure we use the virtualenv:
-ENV PATH="/opt/venv/bin:$PATH"
-
-COPY requirements.txt .
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 RUN pip install -r requirements.txt
 
-FROM python:3.9 as build-image
 ARG function
 
-COPY --from=compile-image /opt/venv /opt/venv
+COPY ./src/$function ${LAMBDA_TASK_ROOT}/src/main
+COPY ./src ${LAMBDA_TASK_ROOT}
+COPY ./src/__init__.py ${LAMBDA_TASK_ROOT}
+COPY ./src/__init__.py ${LAMBDA_TASK_ROOT}/src
+COPY ./src/__init__.py ${LAMBDA_TASK_ROOT}/src/main
 
-ENV PATH="/opt/venv/bin:$PATH"
-
-COPY ./src/$function ./src/main
-COPY ./src ./src
-RUN python -W ignore:PendingDeprecationWarning -m unittest discover -s src -vvv -f
-CMD [ "python","src/main/handler.py" ]
+CMD [ "src.main.handler.handler" ]
