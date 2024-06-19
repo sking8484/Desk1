@@ -17,9 +17,9 @@ services:
   service:
     build: 
       context: .
-      dockerfile: deployment/analysis/Dockerfile
+      dockerfile: deployment/reportingsuite/Dockerfile
       args:
-        function: analysis
+        function: reportingsuite
     env_file:
       - .env-local
     depends_on:
