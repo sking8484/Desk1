@@ -10,6 +10,7 @@ import boto3
 def handler(req, resp):
     hub = dataHub(DataLink)
     hub.maintainUniverse()
+    hub.maintainFactors()
     sendMessage()
     return
 

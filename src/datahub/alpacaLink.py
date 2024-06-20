@@ -54,9 +54,9 @@ class AlpacaLink:
         melted_data = pd.melt(correct_col_name_df, id_vars = ['date'], value_vars = cols, var_name="symbol")
         return melted_data.dropna()
 
-    def get_from_date(self, identifier):
+    def get_from_date(self, identifier, table):
         try:
-            date = self.dataLink.get_agg_element("TEST_STOCK_TABLE", 'date', 'MAX', {'column':'symbol', 'value':identifier})
+            date = self.dataLink.get_agg_element(table, 'date', 'MAX', {'column':'symbol', 'value':identifier})
         except Exception as e:
             print(e)
             date = '2020-01-01'
@@ -65,11 +65,11 @@ class AlpacaLink:
         fromDate = pd.to_datetime(date)
         return fromDate
 
-    def get_timeseries_data(self, symbols):
+    def get_timeseries_data(self, symbols, table):
         first = True
         updated = False
         for symbol in symbols:
-            start_date = self.get_from_date(symbol)
+            start_date = self.get_from_date(symbol, table)
             end_date = date.today()
             if start_date.date() < pd.to_datetime(end_date - BDay(1)).date():
                 updated = True
