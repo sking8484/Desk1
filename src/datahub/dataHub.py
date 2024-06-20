@@ -23,7 +23,7 @@ class dataHub:
         #self.alpacaLink = iexLink(dataLink)
         self.dataLink = dataLink()
         self.mainStockTable = os.environ["MAINSTOCKTABLE"]
-        self.mainFactorTable = "BLEH"
+        self.mainFactorTable = os.environ["MAINFACTORTABLE"]
         self.alpacaLink = AlpacaLink(dataLink)
 
     def getBuyUniverse(self, table) -> list:
@@ -35,18 +35,17 @@ class dataHub:
         elif (table == self.mainFactorTable):
             return [identifier['symbol'] for identifier in self.factors]
 
-    def updateTimeSeriesData(self, table) -> None:
+    def updateTimeSeriesData(self, table, universe) -> None:
         #self.removeNonBuyList(table)
-        self.buyUniverse = self.getBuyUniverse(table)
 
-        data = self.alpacaLink.get_timeseries_data(self.buyUniverse)
+        data = self.alpacaLink.get_timeseries_data(universe, table)
         if not data.empty:
             self.dataLink.append(table, data)
 
-
     def maintainUniverse(self) -> None:
         try:
-            self.updateTimeSeriesData(self.mainStockTable)
+            buyUniverse = self.getBuyUniverse(self.mainStockTable)
+            self.updateTimeSeriesData(self.mainStockTable, buyUniverse)
         except Exception as e:
             print(traceback.print_exc())
     '''
@@ -61,27 +60,9 @@ class dataHub:
             print(traceback.print_exc())
         self.dataLink.closeConnection()
 
-    def maintainFactors(self) -> None:
-        lastUpdate = ""
-
-        while True:
-            if self.TimeRules.getTiming(lastUpdate, ['dataHub', 'maintainFactors']):
-                lastUpdate = date.today().strftime("%Y-%m-%d")
-                self.dataLink = dataLink(self.credents.credentials)
-                try:
-                    self.updateTimeSeriesData(self.mainFactorTable)
-                except Exception as e:
-                    print(traceback.print_exc())
-                self.dataLink.closeConnection()
-            else:
-                time.sleep(self.credents.sleepSeconds)
-
     '''
-
-
-    def maintainData(self) -> None:
-        t1 = threading.Thread(target = self.maintainUniverse).start()
-        t2 = threading.Thread(target = self.maintainTopDownData).start()
-
-
-
+    def maintainFactors(self) -> None:
+        try:
+            self.updateTimeSeriesData(self.mainFactorTable, ['IVV'])
+        except Exception as e:
+            print(traceback.print_exc())
