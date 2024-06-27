@@ -360,7 +360,7 @@ class ion:
         #print(G)
 
         h1 = matrix(0.0,(N,1))
-        h2 = matrix(.2*leverageAmt, (N,1))
+        h2 = matrix(.1*leverageAmt, (N,1))
         h = matrix(np.concatenate([h1,h2]))
         #print(G)
         #print(h)
