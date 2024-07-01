@@ -95,25 +95,46 @@ class reportingSuite:
     def calcStats(self):
         link = DataLink()
 
-        self.buildRelevantData(link)
+        perfData = self.buildRelevantData(link)
+        lastRow = perfData.iloc[-1]
+        returns_vs_index = (lastRow['cumulative'] - lastRow['IVV'])*100
+        sharpeRatio = self.calculateSharpeRatio(perfData)
+        dailyRisk = perfData['pct_change'].std()*100
 
+        num_positions = self.get_num_positions(link)
+
+        data_dict = {'date':[datetime.now()], 'sharpe_ratio':[sharpeRatio], 'returns_vs_index':[returns_vs_index], 'num_positions':[num_positions], 'mean_daily_risk':[dailyRisk]}
+        df = pd.DataFrame.from_dict(data_dict)
+        melted = pd.melt(df, id_vars = ['date'], var_name = 'symbol')
+
+        link.append(os.environ["MAINSTATSTABLE"], melted)
+
+    def get_num_positions(self, link):
+        positionsData = link.return_table(os.environ["MAINWEIGHTSTABLE"]).set_index('date')[['value']].astype(float)
+        positionsDataFiltered = positionsData[positionsData['value'] > 0].loc[max(positionsData.index.values)]
+        return len(positionsDataFiltered['value'].values)
+
+
+    def calculateSharpeRatio(self, perfData):
+        mean_daily_returns = perfData['pct_change'].mean()
+        annualized_daily_returns = (1+mean_daily_returns)**365 - 1
         
+        mean_daily_risk = perfData['pct_change'].std()
+        annualized_daily_risk = (1+mean_daily_risk)**365 - 1
 
-        pass
+        return (annualized_daily_returns - .03)/annualized_daily_risk
+
+
+
 
     def buildRelevantData(self, link):
         perfData = link.return_table(os.environ["MAINPERFTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)
         perfDataIndex = pd.to_datetime(perfData.index).date
         perfData.index = perfDataIndex
-        print(perfData)
 
         perfDataRollingYear = perfData.iloc[-252:]
-        perfDataRollingYear['cumulative'] = ((1+perfDataRollingYear['pct_change']).cumprod() - 1)
+        perfDataRollingYear['cumulative'] = ((1+perfDataRollingYear['pct_change']).cumprod())
         perfDataRollingYear = perfDataRollingYear[['cumulative']]
-
-
-        print("MAX perfDate", max(perfData.index.values))
-        print("MIN perfDate", min(perfData.index.values))
 
         sp500Data = link.return_table(os.environ["MAINFACTORTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)[["IVV"]]
         sp500DataIndex = pd.to_datetime(sp500Data.index).date
@@ -122,5 +143,5 @@ class reportingSuite:
         resultingData = resultingData/resultingData.iloc[0]
         resultingDataWithChange = pd.merge(resultingData, perfData, left_index = True, right_index = True)
 
-        print(resultingDataWithChange)
+        return resultingDataWithChange
 
