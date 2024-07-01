@@ -91,3 +91,36 @@ class reportingSuite:
         except Exception as e:
             print(traceback.print_exc())
             link.append(os.environ["MAINPERFTABLE"],data)
+
+    def calcStats(self):
+        link = DataLink()
+
+        self.buildRelevantData(link)
+
+        
+
+        pass
+
+    def buildRelevantData(self, link):
+        perfData = link.return_table(os.environ["MAINPERFTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)
+        perfDataIndex = pd.to_datetime(perfData.index).date
+        perfData.index = perfDataIndex
+        print(perfData)
+
+        perfDataRollingYear = perfData.iloc[-252:]
+        perfDataRollingYear['cumulative'] = ((1+perfDataRollingYear['pct_change']).cumprod() - 1)
+        perfDataRollingYear = perfDataRollingYear[['cumulative']]
+
+
+        print("MAX perfDate", max(perfData.index.values))
+        print("MIN perfDate", min(perfData.index.values))
+
+        sp500Data = link.return_table(os.environ["MAINFACTORTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)[["IVV"]]
+        sp500DataIndex = pd.to_datetime(sp500Data.index).date
+        sp500Data.index = sp500DataIndex
+        resultingData = pd.merge(perfDataRollingYear, sp500Data, left_index = True, right_index = True)
+        resultingData = resultingData/resultingData.iloc[0]
+        resultingDataWithChange = pd.merge(resultingData, perfData, left_index = True, right_index = True)
+
+        print(resultingDataWithChange)
+
