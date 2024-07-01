@@ -46,6 +46,7 @@ Resources:
     Properties:
       EventSourceArn: !GetAtt Desk1Queue.Arn
       FunctionName: !GetAtt MyLambdaFunction.Arn
+      MaximumBatchingWindowInSeconds: 30
       BatchSize: 1
 
 Parameters:
