@@ -34,6 +34,7 @@ Resources:
           ALPACAPUBKEY: !Sub ${ALPACAPUBKEY}
           ALPACAPRIVKEY: !Sub ${ALPACAPRIVKEY}
           MAINFACTORTABLE: !Sub ${MAINFACTORTABLE}
+          MAINSTATSTABLE: !Sub ${MAINSTATSTABLE}
 
   Desk1Queue:
     Type: AWS::SQS::Queue
@@ -81,4 +82,6 @@ Parameters:
   imageUri:
     Type: String
   MAINFACTORTABLE:
+    Type: String
+  MAINSTATSTABLE:
     Type: String
