@@ -89,7 +89,16 @@ class AnalysisMethods(AnalysisToolKit):
 
         return returnObj
 
-    def clean_data(self, data: pd.DataFrame, lookBack: Optional[int] = 0, removeNullCols: Optional[bool] = False, removeDateColumn: Optional[bool] = False) -> pd.DataFrame:
+    def clean_data(self, data: pd.DataFrame, lookBack: Optional[int] = 0, removeNullCols: Optional[bool] = False, removeDateColumn: Optional[bool] = False, use_change = False) -> pd.DataFrame:
+        if removeDateColumn:
+            if 'date' in data.columns:
+                data.drop(columns = ['date'], inplace = True)
+            elif 'Date' in data.columns:
+                data.drop(columns = ['Date'], inplace=True)
+
+        if use_change:
+            data = data.apply(pd.to_numeric).pct_change().dropna()
+
         if lookBack != 0:
             data = data[-lookBack:]
 
@@ -190,7 +199,7 @@ class SpectrumAnalysis(MSSA, AnalysisMethods):
         return formatted_predictions
         
     def run_mssa(self) -> pd.DataFrame:
-        data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True)
+        data = self.clean_data(data = self.data, lookBack = self.lookBack, removeDateColumn = True, removeNullCols = True, use_change=True)
         hsvt_matrix = self.create_hsvt_matrix(data, self.L, lookBack = self.lookBack, informationThreshold = self.informationThreshold)
         prediction_features = self.create_prediction_features(hsvt_matrix, data.columns, self.L, self.lookBack)
         labels_features_dict = self.create_labels_features(hsvt_matrix)
