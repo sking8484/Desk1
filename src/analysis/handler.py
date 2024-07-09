@@ -50,7 +50,7 @@ def runOptimization(link):
     predictions = link.return_table(os.environ["MAINPREDICTIONTABLE"])
     predictions = predictions[predictions['date'] == max(predictions['date'])]
     optimizer = ion.ion()
-    weights = optimizer.getOptimalWeights(stock_data, 5000000000000, 1.5, True, predictions,True)
+    weights = optimizer.getOptimalWeights(stock_data, 5000000, 1.5, True, predictions,True)
     table = os.environ["MAINWEIGHTSTABLE"]
     link.append(table, weights)
 

@@ -8,4 +8,5 @@ from reportingSuite import reportingSuite
 def handler(response, context):
     suite = reportingSuite()
     suite.calcPerformance()
+    suite.calcStats()
 

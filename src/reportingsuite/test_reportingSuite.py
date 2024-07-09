@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pandas as pd
 import alpaca.data as apdata
 from datahub.dataHub import dataHub
-from reporting_suite.reportingSuite  import reportingSuite
+from reportingsuite.reportingSuite  import reportingSuite
 
 class TestReportingSuite(unittest.TestCase):
     def testSwitchTimes(self):
