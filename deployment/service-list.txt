@@ -1,5 +1,5 @@
-analysis
 rebalance
-datahub
 reportingsuite
+analysis
+datahub
 

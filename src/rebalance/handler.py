@@ -8,6 +8,8 @@ from datahub.dataHub import dataHub
 import os
 from dotenv import load_dotenv
 from rebalance.rebalance import AlpacaLink, AlpacaOrderCreator, Rebalance
+import boto3
+
 
 def handler(req, resp):
     db_link = DataLink()
