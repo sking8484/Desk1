@@ -24,4 +24,12 @@ def handler(req, resp):
     rebalance = Rebalance(alpacaLink)
     rebalance.placeTrades(orders)
 
+    sendMessage()
+
     return {'statusCode': 200}
+
+def sendMessage():
+    if os.environ["ENV"] != "local":
+        sqs_client = boto3.client("sqs")
+        queueUrl = sqs_client.get_queue_url(QueueName="reportingsuite-queue")["QueueUrl"]
+        sqs_client.send_message(QueueUrl=queueUrl, MessageBody="Hi")
