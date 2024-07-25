@@ -62,8 +62,14 @@ class reportingSuite:
         }
         maxPerfDate = self.getFromDate(identifier)
         print(maxPerfDate)
-        stockData = link.return_table(os.environ["MAINSTOCKTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None)
-        stockData = stockData.astype(float).pct_change().fillna(0.0)
+        stockData = link.return_table(os.environ["MAINSTOCKTABLE"])
+        stockDataClose = stockData[stockData['bar_type'] == 'close'][['date', 'symbol', 'value']]
+        stockDataOpen = stockData[stockData['bar_type'] == 'open'][['date', 'symbol', 'value']]
+        stockDataOpen = stockDataOpen.rename(columns = {'date':'open_date', 'symbol':'open_symbol', 'value':"open_value"})
+        merged = pd.merge(stockDataClose, stockDataOpen,  how='inner', left_on=['date','symbol'], right_on = ['open_date','open_symbol'])
+        merged = merged.set_index('date')
+        merged['pct_change'] = (merged['value'].astype(float) / merged['open_value'].astype(float)) - 1
+        stockData = merged.reset_index().pivot(index = "date", columns = "symbol", values = "pct_change")
         newDates = self.switchTimesToDates(pd.to_datetime(stockData.index))
         stockData.index = newDates
         #stockData.set_index(self.switchTimesToDates(pd.to_datetime(stockData.index)), inplace=True)
@@ -136,7 +142,9 @@ class reportingSuite:
         perfDataRollingYear['cumulative'] = ((1+perfDataRollingYear['pct_change']).cumprod())
         perfDataRollingYear = perfDataRollingYear[['cumulative']]
 
-        sp500Data = link.return_table(os.environ["MAINFACTORTABLE"]).pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)[["IVV"]]
+        sp500Data = link.return_table(os.environ["MAINFACTORTABLE"])
+        sp500Data = sp500Data[sp500Data['bar_type'] == 'close'][['date', 'symbol', 'value']]
+        sp500Data = sp500Data.pivot(index = "date", columns = "symbol", values = "value").rename_axis(columns=None).astype(float)[["IVV"]]
         sp500DataIndex = pd.to_datetime(sp500Data.index).date
         sp500Data.index = sp500DataIndex
         resultingData = pd.merge(perfDataRollingYear, sp500Data, left_index = True, right_index = True)

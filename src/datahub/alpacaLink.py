@@ -26,20 +26,21 @@ class AlpacaLink:
         stock_name = self.retrieve_stock_name(alpaca_historical_bars_df)
         return alpaca_historical_bars_df.loc[stock_name]
 
-    def retrieve_closing_price(self, alpaca_historical_bars_df):
+    def retrieve_pricing(self, alpaca_historical_bars_df):
         history = self.retrieve_stock_history(alpaca_historical_bars_df)
-        return history[['close']]
+        return history[['close', 'open']]
     
     def switch_column_names(self, dataframe, names):
         return dataframe.rename(columns = names)
 
     def join_dataframes(self, df_1, df_2):
-        return df_1.join(df_2, how = "outer")
+        return pd.concat([df_1, df_2])
 
     def transform_alpaca_bars_output(self, bars_df):
         symbol = self.retrieve_stock_name(bars_df)
-        closing_price = self.retrieve_closing_price(bars_df)
-        return self.switch_column_names(closing_price, {'close':symbol})
+        pricing = self.retrieve_pricing(bars_df)
+        pricing["symbol"] = symbol
+        return self.normalize_data(pricing)
 
     def build_stock_prices_frame(self, df_1=None, df_2=None):
         if df_1 is None:
@@ -51,7 +52,7 @@ class AlpacaLink:
         cols = stock_df.columns
         standard_index_df = stock_df.reset_index()
         correct_col_name_df = self.switch_column_names(standard_index_df, {"timestamp":"date"})
-        melted_data = pd.melt(correct_col_name_df, id_vars = ['date'], value_vars = cols, var_name="symbol")
+        melted_data = pd.melt(correct_col_name_df, id_vars = ['date', 'symbol'], value_vars = cols, var_name="bar_type")
         return melted_data.dropna()
 
     def get_from_date(self, identifier, table):
@@ -79,8 +80,10 @@ class AlpacaLink:
                     first = False
                 else:
                     df = self.build_stock_prices_frame(df, stock_data)
+
+                print(df)
         if updated:
-            return self.normalize_data(df)
+            return df
         return pd.DataFrame({})
 
 

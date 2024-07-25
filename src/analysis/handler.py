@@ -23,9 +23,16 @@ def handler(event, context):
     sendMessage()
     return {'statusCode': 200}
 
+def get_stock_data(link):
+    data = link.return_table(os.environ["MAINSTOCKTABLE"])
+    data = data[data['bar_type'] == 'close'][['date', 'symbol', 'value']]
+    print(data)
+    data = data.pivot(index = "date", columns = "symbol", values = "value")
+    return data
+
 
 def runMSSA(link):
-    data = link.return_table(os.environ["MAINSTOCKTABLE"]).pivot(index = "date", columns = "symbol", values = "value")
+    data = get_stock_data(link)
     ssa = SpectrumAnalysis(data, L = 5, useIntercept = False, informationThreshold = .90, lookBack = 100)
     prediction = ssa.run_mssa()
     table = os.environ["MAINPREDICTIONTABLE"]
@@ -34,7 +41,7 @@ def runMSSA(link):
 
 
 def runGerber(link):
-    data = link.return_table(os.environ["MAINSTOCKTABLE"]).pivot(index = "date", columns = "symbol", values = "value")
+    data = get_stock_data(link)
     data_pctchange = data.apply(pd.to_numeric).pct_change().dropna()
     gerber = GerberStatistic(data_pctchange, .5)
     gerber_data = gerber.get_gerber_statistic().reset_index()
@@ -46,7 +53,7 @@ def runGerber(link):
     link.append(table, gerber_data)
 
 def runOptimization(link):
-    stock_data = link.return_table(os.environ["MAINSTOCKTABLE"]).pivot(index = "date", columns = "symbol", values = "value").reset_index()
+    stock_data = get_stock_data(link).reset_index()
     predictions = link.return_table(os.environ["MAINPREDICTIONTABLE"])
     predictions = predictions[predictions['date'] == max(predictions['date'])]
     optimizer = ion.ion()
